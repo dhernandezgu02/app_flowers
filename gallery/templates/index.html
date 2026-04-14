@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FlowerGallery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & Variables ──────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+button { font-family: inherit; }
+
+:root {
+  --bg:          #0a0a0a;
+  --sb-bg:       #101010;
+  --surface:     #181818;
+  --surface-2:   #202020;
+  --border:      #242424;
+  --border-2:    #303030;
+  --accent:      #22c55e;
+  --accent-glow: rgba(34,197,94,.18);
+  --accent-ring: rgba(34,197,94,.28);
+  --text:        #f0f0f0;
+  --text-2:      #a0a0a0;
+  --text-3:      #555;
+  --r:           10px;
+  --sb-w:        268px;
+  --ease:        cubic-bezier(.4,0,.2,1);
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  display: flex;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar          { width: 5px; }
+::-webkit-scrollbar-track    { background: transparent; }
+::-webkit-scrollbar-thumb    { background: #2e2e2e; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #444; }
+
+/* ── Sidebar ────────────────────────────────────────────────────────────── */
+.sidebar {
+  width: var(--sb-w);
+  min-width: var(--sb-w);
+  background: var(--sb-bg);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sb-head {
+  padding: 22px 18px 18px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.logo-icon {
+  width: 36px; height: 36px;
+  background: var(--accent-glow);
+  border: 1px solid var(--accent-ring);
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+
+.logo-name  { font-size: 16px; font-weight: 600; letter-spacing: -.3px; line-height: 1.2; }
+.logo-sub   { font-size: 10.5px; color: var(--text-3); letter-spacing: .4px; text-transform: uppercase; margin-top: 1px; }
+
+.sb-stats {
+  display: flex; gap: 20px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.stat-val  { font-size: 22px; font-weight: 600; color: var(--accent); line-height: 1; }
+.stat-lbl  { font-size: 10.5px; color: var(--text-3); text-transform: uppercase; letter-spacing: .4px; margin-top: 3px; }
+
+/* Day list */
+.sb-search-wrap {
+  padding: 10px 10px 6px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.sb-search {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: 7px;
+  padding: 7px 11px 7px 30px;
+  font-size: 12.5px;
+  color: var(--text);
+  outline: none;
+  font-family: inherit;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='%23555' stroke-width='2.5'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 10px center;
+  transition: border-color 150ms;
+}
+.sb-search::placeholder { color: var(--text-3); }
+.sb-search:focus { border-color: var(--accent-ring); }
+
+.day-list {
+  flex: 1; overflow-y: auto;
+  padding: 6px 8px 8px;
+}
+
+.day-list-msg {
+  padding: 32px 16px;
+  text-align: center;
+  color: var(--text-3);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.day-item {
+  padding: 11px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 120ms var(--ease), border-color 120ms var(--ease);
+  margin-bottom: 2px;
+}
+.day-item:hover { background: var(--surface-2); }
+.day-item.active {
+  background: var(--accent-glow);
+  border-color: var(--accent-ring);
+}
+
+.day-date { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+.day-item.active .day-date { color: var(--accent); }
+
+.day-row {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.day-wd    { font-size: 11px; color: var(--text-3); }
+.day-count {
+  font-size: 11px; color: var(--text-2);
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  padding: 1px 8px; border-radius: 20px;
+}
+.day-item.active .day-count {
+  background: rgba(34,197,94,.1);
+  border-color: rgba(34,197,94,.25);
+  color: var(--accent);
+}
+
+/* ── Main ───────────────────────────────────────────────────────────────── */
+.main {
+  flex: 1;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.main-head {
+  padding: 20px 28px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  flex-shrink: 0; gap: 16px;
+}
+
+.main-title    { font-size: 17px; font-weight: 600; letter-spacing: -.3px; }
+.main-subtitle { font-size: 12.5px; color: var(--text-3); margin-top: 3px; }
+
+.head-btns { display: flex; align-items: center; gap: 8px; }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 15px; border-radius: 8px;
+  font-size: 12.5px; font-weight: 500;
+  cursor: pointer; border: none;
+  transition: all 120ms var(--ease);
+  text-decoration: none;
+}
+.btn svg { flex-shrink: 0; }
+
+.btn-ghost {
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  color: var(--text-2);
+}
+.btn-ghost:hover { background: var(--surface-2); color: var(--text); border-color: #3a3a3a; }
+
+.btn-primary { background: var(--accent); color: #0a0a0a; }
+.btn-primary:hover { background: #4ade80; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(34,197,94,.3); }
+.btn-primary:active { transform: none; box-shadow: none; }
+
+/* ── Gallery ────────────────────────────────────────────────────────────── */
+.gallery-wrap { flex: 1; overflow-y: auto; padding: 24px 28px; }
+
+.gallery-empty {
+  height: 100%;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 10px; color: var(--text-3);
+}
+.gallery-empty-icon { font-size: 52px; opacity: .35; }
+.gallery-empty-text { font-size: 13.5px; }
+
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 10px;
+}
+
+/* Skeleton */
+.skeleton {
+  aspect-ratio: 4/3;
+  border-radius: var(--r);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  animation: pulse 1.6s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+
+/* Photo card */
+.photo-card {
+  border-radius: var(--r);
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: transform 150ms var(--ease), box-shadow 150ms var(--ease), border-color 150ms;
+}
+.photo-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 30px rgba(0,0,0,.5);
+  border-color: var(--border-2);
+}
+
+.card-img-wrap {
+  aspect-ratio: 4/3;
+  overflow: hidden;
+  position: relative;
+}
+.card-img-wrap img {
+  width: 100%; height: 100%;
+  object-fit: cover; display: block;
+  transition: transform 250ms var(--ease);
+  background: var(--surface-2);
+}
+.photo-card:hover .card-img-wrap img { transform: scale(1.05); }
+
+.card-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,.72) 0%, transparent 55%);
+  opacity: 0; transition: opacity 150ms var(--ease);
+  display: flex; align-items: flex-end; justify-content: space-between;
+  padding: 9px 11px;
+}
+.photo-card:hover .card-overlay { opacity: 1; }
+
+.card-time { font-size: 11.5px; font-weight: 500; color: rgba(255,255,255,.9); }
+
+.card-dl {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  background: rgba(255,255,255,.14);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,.2);
+  color: white; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 120ms; font-size: 13px;
+}
+.card-dl:hover { background: rgba(255,255,255,.28); }
+
+.card-foot {
+  padding: 7px 11px;
+  font-size: 11px; color: var(--text-3);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  border-top: 1px solid var(--border);
+}
+
+/* ── Lightbox ───────────────────────────────────────────────────────────── */
+.lb {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(0,0,0,.96);
+  display: flex; flex-direction: column;
+  opacity: 0; pointer-events: none;
+  transition: opacity 180ms var(--ease);
+}
+.lb.open { opacity: 1; pointer-events: all; }
+
+.lb-head {
+  padding: 14px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid rgba(255,255,255,.07);
+  flex-shrink: 0; gap: 12px;
+}
+
+.lb-info-name { font-size: 13.5px; font-weight: 500; }
+.lb-info-meta { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+
+.lb-actions { display: flex; align-items: center; gap: 8px; }
+.lb-counter { font-size: 12px; color: var(--text-3); padding: 0 4px; white-space: nowrap; }
+
+.lb-btn {
+  width: 36px; height: 36px;
+  border-radius: 8px;
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.1);
+  color: var(--text); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 120ms;
+}
+.lb-btn:hover { background: rgba(255,255,255,.15); }
+
+.lb-body {
+  flex: 1; position: relative;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; padding: 16px 60px;
+}
+
+.lb-img-wrap { max-width: 100%; max-height: 100%; display: flex; align-items: center; justify-content: center; }
+#lb-img {
+  max-width: 100%; max-height: 100%;
+  object-fit: contain; border-radius: 8px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.6);
+  display: none;
+}
+
+.lb-spinner {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.spinner {
+  width: 34px; height: 34px;
+  border: 2px solid rgba(255,255,255,.08);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .65s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.lb-nav {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: rgba(0,0,0,.55);
+  border: 1px solid rgba(255,255,255,.14);
+  color: white; cursor: pointer; z-index: 2;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 120ms;
+}
+.lb-nav:hover { background: rgba(255,255,255,.15); }
+.lb-nav.prev { left: 12px; }
+.lb-nav.next { right: 12px; }
+
+/* ── Toast ──────────────────────────────────────────────────────────────── */
+.toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 99999;
+  background: var(--surface-2);
+  border: 1px solid var(--border-2);
+  padding: 11px 18px; border-radius: 10px;
+  font-size: 13px; color: var(--text-2);
+  box-shadow: 0 8px 28px rgba(0,0,0,.45);
+  transform: translateY(16px); opacity: 0;
+  transition: all 280ms var(--ease);
+  max-width: 320px; pointer-events: none;
+}
+.toast.show             { transform: translateY(0); opacity: 1; }
+.toast.success          { border-color: rgba(34,197,94,.35); color: var(--accent); }
+.toast.error            { border-color: rgba(239,68,68,.35); color: #f87171; }
+</style>
+</head>
+<body>
+
+<!-- ── Sidebar ─────────────────────────────────────────────────────────── -->
+<aside class="sidebar">
+  <div class="sb-head">
+    <div class="logo">
+      <div class="logo-icon">🌸</div>
+      <div>
+        <div class="logo-name">FlowerGallery</div>
+      </div>
+    </div>
+    <div class="sb-stats" id="sb-stats" style="display:none">
+      <div>
+        <div class="stat-val" id="stat-days">—</div>
+        <div class="stat-lbl">Días</div>
+      </div>
+      <div>
+        <div class="stat-val" id="stat-total">—</div>
+        <div class="stat-lbl">Fotos</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sb-search-wrap">
+    <input class="sb-search" type="text" placeholder="Buscar fecha…"
+           id="sb-search" oninput="filterDays(this.value)" autocomplete="off">
+  </div>
+
+  <div class="day-list" id="day-list">
+    <div class="day-list-msg">Cargando…</div>
+  </div>
+</aside>
+
+<!-- ── Main ────────────────────────────────────────────────────────────── -->
+<main class="main">
+  <div class="main-head">
+    <div>
+      <div class="main-title" id="main-title">Selecciona un día</div>
+      <div class="main-subtitle" id="main-subtitle">Elige una fecha en el panel izquierdo</div>
+    </div>
+    <div class="head-btns">
+      <button class="btn btn-ghost" id="btn-refresh" onclick="refreshDay()" style="display:none">
+        <!-- refresh icon -->
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M1 4v6h6"/><path d="M23 20v-6h-6"/>
+          <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/>
+        </svg>
+        Actualizar
+      </button>
+      <button class="btn btn-primary" id="btn-dl-day" onclick="downloadDay()" style="display:none">
+        <!-- download icon -->
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Descargar día
+      </button>
+    </div>
+  </div>
+
+  <div class="gallery-wrap" id="gallery-wrap">
+    <div class="gallery-empty">
+      <div class="gallery-empty-icon">🌺</div>
+      <div class="gallery-empty-text">Selecciona un día para ver las fotos</div>
+    </div>
+  </div>
+</main>
+
+<!-- ── Lightbox ─────────────────────────────────────────────────────────── -->
+<div class="lb" id="lb" onclick="lbBgClick(event)">
+  <div class="lb-head" onclick="event.stopPropagation()">
+    <div>
+      <div class="lb-info-name" id="lb-name"></div>
+      <div class="lb-info-meta" id="lb-meta"></div>
+    </div>
+    <div class="lb-actions">
+      <span class="lb-counter" id="lb-counter"></span>
+      <button class="lb-btn" title="Descargar (D)" onclick="dlCurrentPhoto()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+      </button>
+      <button class="lb-btn" title="Cerrar (Esc)" onclick="closeLb()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  <div class="lb-body">
+    <div class="lb-spinner" id="lb-spin"><div class="spinner"></div></div>
+    <div class="lb-img-wrap"><img id="lb-img" alt="" onclick="event.stopPropagation()"></div>
+    <button class="lb-nav prev" onclick="event.stopPropagation(); prevPhoto()" title="← Anterior">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <button class="lb-nav next" onclick="event.stopPropagation(); nextPhoto()" title="→ Siguiente">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- ── Toast ────────────────────────────────────────────────────────────── -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ── State ─────────────────────────────────────────────────────────────────
+let allDays   = [];
+let photos    = [];
+let curDay    = null;
+let lbIdx     = 0;
+let toastTmr  = null;
+
+// ── Boot ──────────────────────────────────────────────────────────────────
+(async () => {
+  try {
+    allDays = await apiFetch('/api/days');
+    renderDays(allDays);
+    const total = allDays.reduce((s, d) => s + d.count, 0);
+    q('#stat-days').textContent  = allDays.length;
+    q('#stat-total').textContent = fmtCount(total);
+    q('#sb-stats').style.display = 'flex';
+    if (allDays.length) selectDay(allDays[0].date);
+  } catch {
+    q('#day-list').innerHTML = '<div class="day-list-msg">Error al conectar con el servidor</div>';
+    toast('No se pudo cargar la galería', 'error');
+  }
+})();
+
+// ── API ───────────────────────────────────────────────────────────────────
+async function apiFetch(url) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`HTTP ${r.status}`);
+  return r.json();
+}
+
+// ── Days ──────────────────────────────────────────────────────────────────
+function renderDays(days) {
+  const el = q('#day-list');
+  if (!days.length) {
+    el.innerHTML = '<div class="day-list-msg">No hay fotos aún</div>';
+    return;
+  }
+  el.innerHTML = days.map(d => `
+    <div class="day-item${d.date === curDay ? ' active' : ''}" id="d-${d.date}"
+         onclick="selectDay('${d.date}')">
+      <div class="day-date">${d.label}</div>
+      <div class="day-row">
+        <span class="day-wd">${d.weekday}</span>
+        <span class="day-count">${d.count}</span>
+      </div>
+    </div>`).join('');
+}
+
+function filterDays(q) {
+  const term = q.trim().toLowerCase();
+  const filtered = term
+    ? allDays.filter(d =>
+        d.label.toLowerCase().includes(term) ||
+        d.weekday.toLowerCase().includes(term) ||
+        d.date.includes(term))
+    : allDays;
+  renderDays(filtered);
+}
+
+async function selectDay(date) {
+  curDay = date;
+  document.querySelectorAll('.day-item').forEach(e => e.classList.remove('active'));
+  const el = document.getElementById('d-' + date);
+  if (el) { el.classList.add('active'); el.scrollIntoView({behavior:'smooth',block:'nearest'}); }
+
+  q('#btn-dl-day').style.display   = 'inline-flex';
+  q('#btn-refresh').style.display  = 'inline-flex';
+  showSkeletons();
+
+  try {
+    photos = await apiFetch(`/api/photos/${date}`);
+    renderGrid();
+    const day = allDays.find(d => d.date === date);
+    q('#main-title').textContent    = day ? day.label : date;
+    q('#main-subtitle').textContent = photos.length === 1
+      ? '1 foto capturada'
+      : `${photos.length} fotos capturadas`;
+  } catch {
+    q('#gallery-wrap').innerHTML = `
+      <div class="gallery-empty">
+        <div class="gallery-empty-icon">⚠️</div>
+        <div class="gallery-empty-text">Error al cargar las fotos</div>
+      </div>`;
+    toast('Error al cargar las fotos del día', 'error');
+  }
+}
+
+function refreshDay() { if (curDay) selectDay(curDay); }
+
+// ── Grid ──────────────────────────────────────────────────────────────────
+function showSkeletons(n = 16) {
+  q('#gallery-wrap').innerHTML =
+    `<div class="photo-grid">${'<div class="skeleton"></div>'.repeat(n)}</div>`;
+}
+
+function renderGrid() {
+  const wrap = q('#gallery-wrap');
+  if (!photos.length) {
+    wrap.innerHTML = `
+      <div class="gallery-empty">
+        <div class="gallery-empty-icon">📷</div>
+        <div class="gallery-empty-text">Sin fotos para este día</div>
+      </div>`;
+    return;
+  }
+  wrap.innerHTML = '<div class="photo-grid" id="pg"></div>';
+  const grid = q('#pg');
+
+  photos.forEach((p, i) => {
+    const card = document.createElement('div');
+    card.className = 'photo-card';
+    card.innerHTML = `
+      <div class="card-img-wrap">
+        <img src="${p.thumb_url}" alt="${p.filename}" loading="lazy"
+             onerror="this.style.opacity='.2'">
+        <div class="card-overlay">
+          <span class="card-time">${p.time}</span>
+          <button class="card-dl" title="Descargar">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                 stroke="currentColor" stroke-width="2.5">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="card-foot">${p.filename}</div>`;
+
+    card.querySelector('.card-img-wrap').addEventListener('click', () => openLb(i));
+    card.querySelector('.card-dl').addEventListener('click', e => {
+      e.stopPropagation();
+      dlPhoto(p.blob_name);
+    });
+    grid.appendChild(card);
+  });
+}
+
+// ── Lightbox ──────────────────────────────────────────────────────────────
+function openLb(idx) {
+  lbIdx = idx;
+  refreshLb();
+  q('#lb').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLb() {
+  q('#lb').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function lbBgClick(e) { if (e.target === q('#lb')) closeLb(); }
+function prevPhoto()  { lbIdx = (lbIdx - 1 + photos.length) % photos.length; refreshLb(); }
+function nextPhoto()  { lbIdx = (lbIdx + 1) % photos.length; refreshLb(); }
+
+function refreshLb() {
+  const p   = photos[lbIdx];
+  const img = q('#lb-img');
+  img.style.display = 'none';
+  q('#lb-spin').style.display = 'flex';
+  q('#lb-name').textContent    = p.filename;
+  q('#lb-meta').textContent    = `${p.time}  ·  ${fmtSize(p.size)}`;
+  q('#lb-counter').textContent = `${lbIdx + 1} / ${photos.length}`;
+
+  const tmp = new Image();
+  tmp.onload = () => {
+    img.src = p.url;
+    img.style.display = 'block';
+    q('#lb-spin').style.display = 'none';
+  };
+  tmp.onerror = () => { q('#lb-spin').style.display = 'none'; };
+  tmp.src = p.url;
+}
+
+// ── Downloads ─────────────────────────────────────────────────────────────
+function downloadDay() {
+  if (!curDay) return;
+  toast('Preparando ZIP… puede tardar unos segundos');
+  window.location.href = `/download/${curDay}`;
+}
+
+function dlPhoto(blobName) {
+  window.location.href = `/download/photo/${blobName}`;
+}
+
+function dlCurrentPhoto() {
+  if (photos[lbIdx]) dlPhoto(photos[lbIdx].blob_name);
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────────
+function toast(msg, type = '') {
+  const el  = q('#toast');
+  el.textContent = msg;
+  el.className   = 'toast show ' + type;
+  clearTimeout(toastTmr);
+  toastTmr = setTimeout(() => { el.className = 'toast'; }, 3800);
+}
+
+// ── Keyboard ──────────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (!q('#lb').classList.contains('open')) return;
+  if (e.key === 'ArrowLeft')  prevPhoto();
+  if (e.key === 'ArrowRight') nextPhoto();
+  if (e.key === 'Escape')     closeLb();
+  if (e.key === 'd' || e.key === 'D') dlCurrentPhoto();
+});
+
+// ── Utils ─────────────────────────────────────────────────────────────────
+const q = s => document.querySelector(s);
+function fmtCount(n) { return n >= 1000 ? (n/1000).toFixed(1)+'k' : n; }
+function fmtSize(b)  { return b >= 1048576 ? (b/1048576).toFixed(1)+' MB' : Math.round(b/1024)+' KB'; }
+</script>
+</body>
+</html>
