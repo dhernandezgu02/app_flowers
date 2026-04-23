@@ -112,7 +112,9 @@ def open_camera(camera_type: str) -> cv2.VideoCapture:
     if camera_type == "csi":
         cap = cv2.VideoCapture(gstreamer_pipeline(), cv2.CAP_GSTREAMER)
     else:
-        cap = cv2.VideoCapture(CAMERA_INDEX)
+        # Fuerza backend V4L2 — el OpenCV de Jetson defaultea a GStreamer
+        # y falla con cámaras USB si no se especifica el backend.
+        cap = cv2.VideoCapture(CAMERA_INDEX, cv2.CAP_V4L2)
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
         cap.set(cv2.CAP_PROP_FPS, 60)
