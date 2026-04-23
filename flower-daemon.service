@@ -1,0 +1,26 @@
+[Unit]
+Description=Flower Capture Daemon
+# Arranca apenas el sistema de archivos esté listo — NO espera internet
+After=local-fs.target
+# Sin límite de reinicios: si muere, siempre vuelve a intentarlo
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+# Cambia "jetson" por el usuario real de la Jetson
+User=jetson
+WorkingDirectory=/home/jetson/app_flowers
+
+# Cambia --camera-type a "csi" si usas cámara CSI/MIPI
+ExecStart=/home/jetson/app_flowers/venv/bin/python flower_daemon.py --camera-type usb
+
+# Reinicia siempre: crash, kill, error de cámara, lo que sea
+Restart=always
+# Espera 10 s antes de reiniciar (evita loop frenético si hay error de config)
+RestartSec=10
+
+StandardOutput=append:/home/jetson/app_flowers/flower_daemon.log
+StandardError=append:/home/jetson/app_flowers/flower_daemon.log
+
+[Install]
+WantedBy=multi-user.target
