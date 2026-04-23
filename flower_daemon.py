@@ -176,6 +176,53 @@ def save_pending(img_bytes: bytes, filename: str):
 
 
 # ══════════════════════════════════════════════════════════════════════════════
+#  Sync de pendientes (se corre automáticamente al terminar la jornada)
+# ══════════════════════════════════════════════════════════════════════════════
+
+def sync_pending(bucket):
+    """Sube a GCS todas las fotos guardadas localmente en PENDING_DIR."""
+    if not PENDING_DIR.exists():
+        return
+    photos = sorted(
+        p for p in PENDING_DIR.iterdir()
+        if p.is_file() and p.suffix.lower() in {".jpg", ".jpeg", ".png"}
+    )
+    if not photos:
+        return
+
+    log.info("── Sync automático: %d fotos pendientes ─────────────────────", len(photos))
+
+    if bucket is None:
+        log.warning("Sin cliente GCS — sync pospuesto al próximo ciclo.")
+        return
+
+    ok = fail = 0
+    for photo in photos:
+        blob_name = f"{GCS_FOLDER}/{photo.name}"
+        try:
+            # Evita re-subir si ya está en GCS
+            if bucket.blob(blob_name).exists():
+                photo.unlink()
+                ok += 1
+                continue
+            bucket.blob(blob_name).upload_from_filename(
+                str(photo), content_type="image/jpeg", timeout=30
+            )
+            photo.unlink()
+            ok += 1
+            log.info("[sync OK] %s  %d KB", photo.name, photo.stat().st_size // 1024 if photo.exists() else 0)
+        except Exception as exc:
+            fail += 1
+            log.warning("[sync FAIL] %s — %s", photo.name, exc)
+
+    log.info("── Sync completo: %d subidas, %d fallidas ───────────────────", ok, fail)
+    try:
+        PENDING_DIR.rmdir()   # borra la carpeta si quedó vacía
+    except OSError:
+        pass
+
+
+# ══════════════════════════════════════════════════════════════════════════════
 #  Sesión de captura (una jornada)
 # ══════════════════════════════════════════════════════════════════════════════
 
@@ -323,9 +370,12 @@ def main():
         while True:
             if in_work_window():
                 run_session(bucket, args.camera_type, args.debug)
-                # Después de una sesión, refresca el cliente GCS por si
-                # al inicio no había internet y ahora sí hay.
+                # La sesión terminó (fin de horario o error de cámara).
+                # Refresca cliente GCS por si ahora hay internet.
                 bucket = build_gcs_bucket()
+                # Sube automáticamente las fotos pendientes al terminar la jornada.
+                if not in_work_window():
+                    sync_pending(bucket)
             else:
                 wait = seconds_until_next_window()
                 log.info("Fuera de horario. Próxima jornada en %.0f min (%.1f h)",
