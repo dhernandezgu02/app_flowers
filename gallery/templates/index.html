@@ -321,6 +321,8 @@ body {
   transition: background 120ms;
 }
 .lb-btn:hover { background: rgba(255,255,255,.15); }
+.lb-btn.active { background: rgba(34,197,94,.25); border-color: rgba(34,197,94,.5); color: #4ade80; }
+.lb-btn.active:hover { background: rgba(34,197,94,.35); }
 
 .lb-body {
   flex: 1; position: relative;
@@ -362,6 +364,310 @@ body {
 .lb-nav:hover { background: rgba(255,255,255,.15); }
 .lb-nav.prev { left: 12px; }
 .lb-nav.next { right: 12px; }
+
+/* ── Disease badges ─────────────────────────────────────────────────────── */
+.disease-badge {
+  position: absolute; top: 8px; left: 8px;
+  font-size: 9.5px; font-weight: 700;
+  padding: 2px 8px; border-radius: 20px;
+  letter-spacing: .4px; text-transform: uppercase;
+  z-index: 2; pointer-events: none;
+}
+.badge-sano       { background: rgba(34,197,94,.88);  color: #052e16; }
+.badge-botrytis   { background: rgba(239,68,68,.88);  color: #fff; }
+.badge-sospechoso { background: rgba(245,158,11,.88); color: #1c0a00; }
+
+.analyze-progress { font-size: 12px; color: var(--text-3); padding: 0 2px; }
+
+.lb-analysis {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 5px;
+}
+.lb-analysis-badge {
+  font-size: 10px; font-weight: 700;
+  padding: 2px 10px; border-radius: 20px;
+  letter-spacing: .4px; text-transform: uppercase;
+}
+.lb-badge-sano       { background: rgba(34,197,94,.18);  color: #4ade80; border: 1px solid rgba(34,197,94,.35); }
+.lb-badge-botrytis   { background: rgba(239,68,68,.18);  color: #f87171; border: 1px solid rgba(239,68,68,.35); }
+.lb-badge-sospechoso { background: rgba(245,158,11,.18); color: #fbbf24; border: 1px solid rgba(245,158,11,.35); }
+.lb-analysis-notes   { font-size: 12px; color: var(--text-2); }
+
+/* Panel de detalle de análisis en lightbox */
+.lb-detail-panel {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: rgba(10,10,10,.94);
+  border-top: 1px solid rgba(255,255,255,.08);
+  backdrop-filter: blur(10px);
+  padding: 14px 20px;
+  display: none;
+  gap: 16px;
+  z-index: 5;
+}
+.lb-detail-panel.visible { display: flex; }
+.lb-detail-col { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.lb-detail-resumen {
+  font-size: 12px; color: var(--text-2); line-height: 1.5;
+  padding: 7px 10px; background: var(--surface);
+  border-radius: 6px; border: 1px solid var(--border);
+}
+.lb-detail-hallazgos { display: flex; flex-direction: column; gap: 3px; }
+.lb-detail-hallazgo {
+  font-size: 11.5px; color: var(--text-2); line-height: 1.4;
+  padding-left: 12px; position: relative;
+}
+.lb-detail-hallazgo::before { content:'·'; position:absolute; left:2px; color:var(--text-3); }
+.lb-detail-toggle {
+  font-size: 11px; padding: 3px 10px; border-radius: 6px;
+  background: var(--surface); border: 1px solid var(--border-2);
+  color: var(--text-3); cursor: pointer; font-family: inherit;
+  transition: all 120ms;
+}
+.lb-detail-toggle:hover { color: var(--text); border-color: #3a3a3a; }
+.lb-btn-sm {
+  font-size: 11px; padding: 4px 12px; border-radius: 7px;
+  background: var(--surface); border: 1px solid var(--border-2);
+  color: var(--text-2); cursor: pointer; font-family: inherit;
+  transition: background 120ms;
+}
+.lb-btn-sm:hover { background: var(--surface-2); color: var(--text); }
+.lb-btn-sm:disabled { opacity: .5; cursor: default; }
+.lb-btn-gpt {
+  background: rgba(16,163,127,.1); border-color: rgba(16,163,127,.3);
+  color: #34d399;
+}
+.lb-btn-gpt:hover { background: rgba(16,163,127,.2); color: #6ee7b7; }
+
+.lb-analysis-result {
+  display: flex; align-items: center; gap: 6px;
+}
+.lb-model-tag {
+  font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px;
+  letter-spacing: .5px; text-transform: uppercase; white-space: nowrap;
+}
+.lb-model-claude { background: rgba(139,92,246,.2); color: #a78bfa; border: 1px solid rgba(139,92,246,.3); }
+.lb-model-gpt    { background: rgba(16,163,127,.2); color: #34d399;  border: 1px solid rgba(16,163,127,.3); }
+
+/* ── Batch progress bar ─────────────────────────────────────────────────── */
+.batch-bar {
+  padding: 8px 28px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: none; align-items: center; gap: 12px;
+  flex-shrink: 0;
+}
+.batch-bar.active { display: flex; }
+.batch-track {
+  flex: 1; height: 5px; background: var(--border-2); border-radius: 3px; overflow: hidden;
+}
+.batch-fill {
+  height: 100%; background: var(--accent); border-radius: 3px;
+  transition: width 600ms ease; width: 0%;
+}
+.batch-label { font-size: 11.5px; color: var(--text-3); white-space: nowrap; }
+.batch-cancel {
+  font-size: 11px; padding: 3px 10px; border-radius: 6px;
+  background: transparent; border: 1px solid var(--border-2);
+  color: var(--text-3); cursor: pointer; font-family: inherit;
+}
+.batch-cancel:hover { color: #f87171; border-color: rgba(239,68,68,.4); }
+
+/* Color viz overlay */
+.color-viz-overlay {
+  position: absolute; inset: 0;
+  display: none; align-items: stretch; justify-content: center;
+  background: rgba(0,0,0,.88); z-index: 4; padding: 12px; gap: 12px;
+}
+.color-viz-overlay.visible { display: flex; }
+
+.cviz-img-wrap {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; position: relative;
+}
+.cviz-img-wrap img {
+  max-width: 100%; max-height: calc(100% - 52px);
+  object-fit: contain; border-radius: 8px;
+  transition: opacity 300ms; flex-shrink: 1;
+}
+.color-stats-bar {
+  background: rgba(255,255,255,.07); border-radius: 8px;
+  padding: 6px 14px; display: flex; gap: 16px; font-size: 12px;
+  border: 1px solid rgba(255,255,255,.1); flex-shrink: 0;
+}
+.cstat { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.cstat-val { font-weight: 700; font-size: 15px; }
+.cstat-lbl { font-size: 10px; color: var(--text-3); }
+.cstat-green   .cstat-val { color: #4ade80; }
+.cstat-suspect .cstat-val { color: #f87171; }
+.cstat-result  .cstat-val { font-size: 12px; text-transform: uppercase; letter-spacing: .5px; }
+
+/* Panel lateral de zonas */
+.cviz-zones-panel {
+  width: 220px; flex-shrink: 0;
+  background: rgba(255,255,255,.05); border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.1);
+  display: flex; flex-direction: column; gap: 0;
+  overflow: hidden;
+}
+.cviz-zones-title {
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .6px; color: var(--text-3);
+  padding: 10px 12px 8px; border-bottom: 1px solid rgba(255,255,255,.07);
+}
+.cviz-zones-list {
+  flex: 1; overflow-y: auto; padding: 8px;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.cviz-zones-loading { color: var(--text-3); font-size: 12px; padding: 4px; }
+.cviz-zone-item {
+  background: rgba(255,255,255,.05); border-radius: 8px;
+  padding: 8px 10px; display: flex; gap: 8px; align-items: flex-start;
+  border: 1px solid rgba(255,255,255,.06);
+}
+.cviz-zone-item.sev-alta   { border-color: rgba(248,113,113,.35); background: rgba(248,113,113,.08); }
+.cviz-zone-item.sev-media  { border-color: rgba(251,191,36,.35);  background: rgba(251,191,36,.08); }
+.cviz-zone-item.sev-baja   { border-color: rgba(74,222,128,.35);  background: rgba(74,222,128,.08); }
+.cviz-zone-num {
+  width: 20px; height: 20px; border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 700; flex-shrink: 0; margin-top: 1px;
+}
+.sev-alta  .cviz-zone-num { background: rgba(248,113,113,.3); color: #f87171; }
+.sev-media .cviz-zone-num { background: rgba(251,191,36,.3);  color: #fbbf24; }
+.sev-baja  .cviz-zone-num { background: rgba(74,222,128,.3);  color: #4ade80; }
+.cviz-zone-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.cviz-zone-name { font-size: 12px; font-weight: 500; color: var(--text); }
+.cviz-zone-pct  { font-size: 11px; color: var(--text-3); }
+.cviz-zone-sev  { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .4px; }
+.sev-alta  .cviz-zone-sev { color: #f87171; }
+.sev-media .cviz-zone-sev { color: #fbbf24; }
+.sev-baja  .cviz-zone-sev { color: #4ade80; }
+.cviz-no-zones { color: var(--text-3); font-size: 12px; padding: 4px; text-align: center; }
+.cviz-legend {
+  padding: 8px 12px; border-top: 1px solid rgba(255,255,255,.07);
+  font-size: 10px; color: var(--text-3); display: flex; align-items: center;
+}
+.cviz-leg-dot {
+  width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px;
+}
+
+.lb-detail-anomalias { display: flex; flex-direction: column; gap: 3px; }
+.lb-detail-anomalia {
+  font-size: 11.5px; color: #fbbf24; line-height: 1.4;
+  padding-left: 12px; position: relative;
+}
+.lb-detail-anomalia::before { content:'⚠'; position:absolute; left:0; font-size:9px; top:2px; }
+.lb-detail-descripcion {
+  font-size: 11.5px; color: var(--text-2); line-height: 1.6;
+  padding: 8px 10px; background: rgba(255,255,255,.03);
+  border-radius: 6px; border: 1px solid var(--border); margin-top: 2px;
+}
+
+/* ── Upload modal ───────────────────────────────────────────────────────── */
+.upload-overlay {
+  position: fixed; inset: 0; z-index: 10000;
+  background: rgba(0,0,0,.85);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 180ms var(--ease);
+}
+.upload-overlay.open { opacity: 1; pointer-events: all; }
+
+.upload-panel {
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: 14px;
+  width: 540px; max-width: 95vw;
+  display: flex; flex-direction: column;
+  box-shadow: 0 24px 60px rgba(0,0,0,.6);
+  overflow: hidden;
+}
+
+.upload-panel-head {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.upload-panel-head span { font-size: 14px; font-weight: 600; }
+.upload-close {
+  width: 28px; height: 28px; border-radius: 6px;
+  background: transparent; border: none;
+  color: var(--text-3); cursor: pointer; font-size: 18px; line-height: 1;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 120ms;
+}
+.upload-close:hover { background: var(--surface-2); color: var(--text); }
+
+.upload-body { padding: 20px; display: flex; flex-direction: column; gap: 16px; }
+
+.drop-zone {
+  border: 2px dashed var(--border-2);
+  border-radius: 10px;
+  min-height: 180px;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; cursor: pointer;
+  transition: border-color 150ms, background 150ms;
+  overflow: hidden;
+}
+.drop-zone:hover, .drop-zone.drag-over {
+  border-color: var(--accent-ring);
+  background: var(--accent-glow);
+}
+.drop-zone input[type=file] {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+}
+.drop-hint {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  color: var(--text-3); pointer-events: none;
+}
+.drop-hint-icon { font-size: 36px; }
+.drop-hint-text { font-size: 13px; }
+.drop-hint-sub  { font-size: 11px; color: var(--text-3); }
+
+#upload-preview {
+  width: 100%; max-height: 280px; object-fit: contain;
+  border-radius: 8px; display: none;
+}
+
+.upload-results {
+  display: flex;
+  gap: 10px;
+}
+.upload-result-col {
+  flex: 1; background: var(--surface-2);
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px; display: flex; flex-direction: column; gap: 8px;
+  min-width: 0;
+}
+.upload-result-col .lb-model-tag { align-self: flex-start; }
+.upload-result-status {
+  font-size: 20px; font-weight: 700; letter-spacing: -.5px;
+}
+.upload-result-conf { font-size: 11px; color: var(--text-3); margin-top: -4px; }
+.upload-result-resumen {
+  font-size: 12px; color: var(--text-2); line-height: 1.5;
+  padding: 8px 10px; background: var(--surface);
+  border-radius: 6px; border: 1px solid var(--border);
+}
+.upload-result-hallazgos { display: flex; flex-direction: column; gap: 4px; }
+.upload-result-hallazgo {
+  font-size: 11.5px; color: var(--text-2); line-height: 1.4;
+  padding-left: 12px; position: relative;
+}
+.upload-result-hallazgo::before {
+  content: '·'; position: absolute; left: 2px; color: var(--text-3);
+}
+.upload-analyzing {
+  font-size: 12px; color: var(--text-3);
+  display: flex; align-items: center; gap: 8px;
+}
+.upload-analyzing .spinner { width: 14px; height: 14px; border-width: 2px; }
+
+.upload-foot {
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  display: flex; justify-content: flex-end; gap: 8px;
+}
 
 /* ── Toast ──────────────────────────────────────────────────────────────── */
 .toast {
@@ -421,8 +727,21 @@ body {
       <div class="main-subtitle" id="main-subtitle">Elige una fecha en el panel izquierdo</div>
     </div>
     <div class="head-btns">
+      <button class="btn btn-ghost" onclick="openUploadModal()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+        Analizar imagen
+      </button>
+      <button class="btn btn-ghost" id="btn-batch" onclick="startBatch()" style="display:none">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        Analizar día
+      </button>
       <button class="btn btn-ghost" id="btn-refresh" onclick="refreshDay()" style="display:none">
-        <!-- refresh icon -->
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <path d="M1 4v6h6"/><path d="M23 20v-6h-6"/>
           <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/>
@@ -441,6 +760,12 @@ body {
     </div>
   </div>
 
+  <div class="batch-bar" id="batch-bar">
+    <div class="batch-track"><div class="batch-fill" id="batch-fill"></div></div>
+    <span class="batch-label" id="batch-label">Analizando…</span>
+    <button class="batch-cancel" onclick="cancelBatch()">Cancelar</button>
+  </div>
+
   <div class="gallery-wrap" id="gallery-wrap">
     <div class="gallery-empty">
       <div class="gallery-empty-icon">🌺</div>
@@ -455,9 +780,17 @@ body {
     <div>
       <div class="lb-info-name" id="lb-name"></div>
       <div class="lb-info-meta" id="lb-meta"></div>
+      <div class="lb-analysis" id="lb-analysis" style="display:none"></div>
     </div>
     <div class="lb-actions">
       <span class="lb-counter" id="lb-counter"></span>
+      <button class="lb-btn" id="lb-btn-color" title="Análisis de color HSV" onclick="toggleColorViz()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="12" cy="12" r="10"/>
+          <path d="M12 2a10 10 0 0 1 0 20"/>
+          <path d="M12 2C6.5 2 2 6.5 2 12"/>
+        </svg>
+      </button>
       <button class="lb-btn" title="Descargar (D)" onclick="dlCurrentPhoto()">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
@@ -481,6 +814,83 @@ body {
     <button class="lb-nav next" onclick="event.stopPropagation(); nextPhoto()" title="→ Siguiente">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
     </button>
+    <!-- Overlay análisis de color HSV -->
+    <div class="color-viz-overlay" id="color-viz-overlay" onclick="toggleColorViz()">
+      <!-- Imagen con overlay izquierda -->
+      <div class="cviz-img-wrap" onclick="event.stopPropagation()">
+        <img id="color-viz-img" alt="Análisis de color">
+        <div class="color-stats-bar" id="color-stats-bar">
+          <div class="cstat cstat-green">
+            <span class="cstat-val" id="cstat-green">—</span>
+            <span class="cstat-lbl">Verde sano</span>
+          </div>
+          <div class="cstat cstat-suspect">
+            <span class="cstat-val" id="cstat-suspect">—</span>
+            <span class="cstat-lbl">Sospechoso</span>
+          </div>
+          <div class="cstat cstat-result">
+            <span class="cstat-val" id="cstat-result">—</span>
+            <span class="cstat-lbl">Diagnóstico</span>
+          </div>
+        </div>
+      </div>
+      <!-- Panel de zonas derecha -->
+      <div class="cviz-zones-panel" id="cviz-zones-panel" onclick="event.stopPropagation()">
+        <div class="cviz-zones-title">Zonas detectadas</div>
+        <div class="cviz-zones-list" id="cviz-zones-list">
+          <div class="cviz-zones-loading">Analizando…</div>
+        </div>
+        <div class="cviz-legend">
+          <span class="cviz-leg-dot" style="background:#f87171"></span> Alta
+          <span class="cviz-leg-dot" style="background:#fbbf24; margin-left:8px"></span> Media
+          <span class="cviz-leg-dot" style="background:#4ade80; margin-left:8px"></span> Baja
+        </div>
+      </div>
+    </div>
+
+    <!-- Panel detalle análisis -->
+    <div class="lb-detail-panel" id="lb-detail-panel" onclick="event.stopPropagation()">
+      <div class="lb-detail-col" id="lb-detail-claude">
+        <div class="lb-detail-resumen"   id="lbd-claude-resumen"></div>
+        <div class="lb-detail-hallazgos" id="lbd-claude-hallazgos"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Upload Modal ──────────────────────────────────────────────────────── -->
+<div class="upload-overlay" id="upload-overlay" onclick="overlayBgClick(event)">
+  <div class="upload-panel" onclick="event.stopPropagation()">
+    <div class="upload-panel-head">
+      <span>Analizar imagen manual</span>
+      <button class="upload-close" onclick="closeUploadModal()">×</button>
+    </div>
+    <div class="upload-body">
+      <div class="drop-zone" id="drop-zone">
+        <input type="file" id="upload-input" accept="image/jpeg,image/png,image/webp"
+               onchange="handleFileSelect(this.files[0])">
+        <div class="drop-hint" id="drop-hint">
+          <div class="drop-hint-icon">🌸</div>
+          <div class="drop-hint-text">Arrastra una foto aquí o haz clic</div>
+          <div class="drop-hint-sub">JPG, PNG — max 20 MB</div>
+        </div>
+        <img id="upload-preview" alt="preview">
+      </div>
+      <div class="upload-results" id="upload-results" style="display:none">
+        <div class="upload-result-col" id="ur-claude">
+          <div class="upload-result-status" id="urc-status">—</div>
+          <div class="upload-result-conf"   id="urc-conf"></div>
+          <div class="upload-result-resumen"   id="urc-resumen" style="display:none"></div>
+          <div class="upload-result-hallazgos" id="urc-hallazgos"></div>
+        </div>
+      </div>
+    </div>
+    <div class="upload-foot">
+      <button class="btn btn-ghost" onclick="closeUploadModal()">Cerrar</button>
+      <button class="btn btn-primary" id="btn-do-analyze" onclick="analyzeUpload()" disabled>
+        Analizar
+      </button>
+    </div>
   </div>
 </div>
 
@@ -488,11 +898,16 @@ body {
 <div class="toast" id="toast"></div>
 
 <script>
+// ── Utils (primero para que estén disponibles en todo el script) ──────────
+const q = s => document.querySelector(s);
+function fmtCount(n) { return n >= 1000 ? (n/1000).toFixed(1)+'k' : n; }
+function fmtSize(b)  { return b >= 1048576 ? (b/1048576).toFixed(1)+' MB' : Math.round(b/1024)+' KB'; }
+
 // ── State ─────────────────────────────────────────────────────────────────
-let allDays   = [];
-let photos    = [];
-let curDay    = null;
-let lbIdx     = 0;
+let allDays         = [];
+let photos          = [];
+let curDay          = null;
+let lbIdx           = 0;
 let toastTmr  = null;
 
 // ── Boot ──────────────────────────────────────────────────────────────────
@@ -555,6 +970,7 @@ async function selectDay(date) {
 
   q('#btn-dl-day').style.display   = 'inline-flex';
   q('#btn-refresh').style.display  = 'inline-flex';
+  q('#btn-batch').style.display    = 'inline-flex';
   showSkeletons();
 
   try {
@@ -599,20 +1015,33 @@ function renderGrid() {
   photos.forEach((p, i) => {
     const card = document.createElement('div');
     card.className = 'photo-card';
+    card.dataset.idx = i;
+    const worst     = worstAnalysis(p);
+    const badgeHtml = worst
+      ? `<div class="disease-badge badge-${worst.status}">${statusLabel(worst.status)}</div>`
+      : '';
     card.innerHTML = `
       <div class="card-img-wrap">
         <img src="${p.thumb_url}" alt="${p.filename}" loading="lazy"
              onerror="this.style.opacity='.2'">
+        ${badgeHtml}
         <div class="card-overlay">
           <span class="card-time">${p.time}</span>
-          <button class="card-dl" title="Descargar">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-                 stroke="currentColor" stroke-width="2.5">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="7 10 12 15 17 10"/>
-              <line x1="12" y1="15" x2="12" y2="3"/>
-            </svg>
-          </button>
+          <div style="display:flex;gap:5px">
+            ${!worstAnalysis(p) ? `<button class="card-dl card-analyze" title="Analizar enfermedad">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v3h3"/>
+              </svg>
+            </button>` : ''}
+            <button class="card-dl" title="Descargar">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                   stroke="currentColor" stroke-width="2.5">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
       <div class="card-foot">${p.filename}</div>`;
@@ -622,6 +1051,13 @@ function renderGrid() {
       e.stopPropagation();
       dlPhoto(p.blob_name);
     });
+    const analyzeBtn = card.querySelector('.card-analyze');
+    if (analyzeBtn) {
+      analyzeBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        analyzeSinglePhoto(i);
+      });
+    }
     grid.appendChild(card);
   });
 }
@@ -636,12 +1072,21 @@ function openLb(idx) {
 
 function closeLb() {
   q('#lb').classList.remove('open');
+  q('#lb-detail-panel').classList.remove('visible');
+  q('#color-viz-overlay').classList.remove('visible');
+  q('#lb-btn-color').classList.remove('active');
   document.body.style.overflow = '';
 }
 
+function _closeColorOnNav() {
+  q('#color-viz-overlay').classList.remove('visible');
+  q('#lb-btn-color').classList.remove('active');
+  _colorVizLoaded = null;
+}
+
 function lbBgClick(e) { if (e.target === q('#lb')) closeLb(); }
-function prevPhoto()  { lbIdx = (lbIdx - 1 + photos.length) % photos.length; refreshLb(); }
-function nextPhoto()  { lbIdx = (lbIdx + 1) % photos.length; refreshLb(); }
+function prevPhoto()  { _closeColorOnNav(); lbIdx = (lbIdx - 1 + photos.length) % photos.length; refreshLb(); }
+function nextPhoto()  { _closeColorOnNav(); lbIdx = (lbIdx + 1) % photos.length; refreshLb(); }
 
 function refreshLb() {
   const p   = photos[lbIdx];
@@ -651,6 +1096,22 @@ function refreshLb() {
   q('#lb-name').textContent    = p.filename;
   q('#lb-meta').textContent    = `${p.time}  ·  ${fmtSize(p.size)}`;
   q('#lb-counter').textContent = `${lbIdx + 1} / ${photos.length}`;
+
+  const lbAn = q('#lb-analysis');
+  lbAn.style.display = 'flex';
+  let anHtml = '';
+
+  if (p.analysis) {
+    anHtml += `<span class="lb-analysis-badge lb-badge-${p.analysis.status}">${statusLabel(p.analysis.status)}</span>`;
+    anHtml += `<button class="lb-detail-toggle" id="lb-toggle-detail" onclick="toggleDetailPanel()">Ver hallazgos ▾</button>`;
+  } else {
+    anHtml += `<button class="lb-btn-sm" id="lb-analyze-btn" onclick="analyzeSinglePhoto(${lbIdx},false)">▶ Analizar</button>`;
+  }
+  lbAn.innerHTML = anHtml;
+
+  // actualiza panel de detalle si ya estaba visible
+  if (q('#lb-detail-panel').classList.contains('visible')) fillDetailPanel(p);
+  else q('#lb-detail-panel').classList.remove('visible');
 
   const tmp = new Image();
   tmp.onload = () => {
@@ -695,10 +1156,313 @@ document.addEventListener('keydown', e => {
   if (e.key === 'd' || e.key === 'D') dlCurrentPhoto();
 });
 
-// ── Utils ─────────────────────────────────────────────────────────────────
-const q = s => document.querySelector(s);
-function fmtCount(n) { return n >= 1000 ? (n/1000).toFixed(1)+'k' : n; }
-function fmtSize(b)  { return b >= 1048576 ? (b/1048576).toFixed(1)+' MB' : Math.round(b/1024)+' KB'; }
+// ── Disease analysis ──────────────────────────────────────────────────────
+const STATUS_LABELS = { sano: 'Sano', botrytis: 'Botrytis', sospechoso: 'Sospechoso' };
+function statusLabel(s) { return STATUS_LABELS[s] || s; }
+
+const SEV = { botrytis: 3, sospechoso: 2, sano: 1 };
+function worstAnalysis(p) {
+  return p.analysis || null;
+}
+
+async function analyzeSinglePhoto(idx) {
+  const p   = photos[idx];
+  const btn = document.getElementById('lb-analyze-btn');
+  if (btn) btn.disabled = true;
+  try {
+    const result = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ blob_name: p.blob_name }),
+    }).then(r => r.json());
+    photos[idx].analysis = result;
+    updateCardBadge(idx);
+    refreshLb();
+  } catch {
+    toast('Error al analizar con Claude', 'error');
+    if (btn) btn.disabled = false;
+  }
+}
+
+function fillDetailPanel(p) {
+  function fillCol(colId, data) {
+    const col = q(`#${colId}`);
+    if (!data) { col.style.display = 'none'; return; }
+    col.style.display = 'flex';
+
+    // resumen
+    const rEl = col.querySelector('.lb-detail-resumen');
+    rEl.textContent   = data.resumen || '';
+    rEl.style.display = data.resumen ? 'block' : 'none';
+
+    // hallazgos
+    const hEl   = col.querySelector('.lb-detail-hallazgos');
+    const items = Array.isArray(data.hallazgos) ? data.hallazgos : [];
+    hEl.innerHTML = items.map(h => `<div class="lb-detail-hallazgo">${h}</div>`).join('');
+
+    // anomalias
+    let aEl = col.querySelector('.lb-detail-anomalias');
+    if (!aEl) { aEl = document.createElement('div'); aEl.className = 'lb-detail-anomalias'; col.appendChild(aEl); }
+    const anoms = Array.isArray(data.anomalias) ? data.anomalias.filter(Boolean) : [];
+    aEl.innerHTML = anoms.length
+      ? anoms.map(a => `<div class="lb-detail-anomalia">${a}</div>`).join('')
+      : '';
+
+    // descripcion
+    let dEl = col.querySelector('.lb-detail-descripcion');
+    if (!dEl) { dEl = document.createElement('div'); dEl.className = 'lb-detail-descripcion'; col.appendChild(dEl); }
+    dEl.textContent   = data.descripcion || '';
+    dEl.style.display = data.descripcion ? 'block' : 'none';
+  }
+  fillCol('lb-detail-claude', p.analysis);
+}
+
+function toggleDetailPanel() {
+  const panel  = q('#lb-detail-panel');
+  const toggle = q('#lb-toggle-detail');
+  const open   = panel.classList.toggle('visible');
+  if (toggle) toggle.textContent = open ? 'Ocultar ▴' : 'Ver hallazgos ▾';
+  if (open) fillDetailPanel(photos[lbIdx]);
+}
+
+function updateCardBadge(idx) {
+  const p    = photos[idx];
+  const card = document.querySelector(`.photo-card[data-idx="${idx}"]`);
+  if (!card) return;
+  const wrap     = card.querySelector('.card-img-wrap');
+  let badge      = wrap.querySelector('.disease-badge');
+  const analysis = worstAnalysis(p);
+  if (!analysis) return;
+  if (!badge) { badge = document.createElement('div'); wrap.appendChild(badge); }
+  badge.className   = `disease-badge badge-${analysis.status}`;
+  badge.textContent = statusLabel(analysis.status);
+}
+
+// ── Análisis de color HSV ─────────────────────────────────────────────────
+let _colorVizLoaded = null;  // blob_name de la viz cargada
+
+function _renderColorZones(zonas) {
+  const list = q('#cviz-zones-list');
+  if (!zonas || zonas.length === 0) {
+    list.innerHTML = '<div class="cviz-no-zones">No se detectaron zonas sospechosas</div>';
+    return;
+  }
+  list.innerHTML = zonas.map(z => `
+    <div class="cviz-zone-item sev-${z.severity}">
+      <div class="cviz-zone-num">${z.num}</div>
+      <div class="cviz-zone-info">
+        <div class="cviz-zone-name">${z.zona}</div>
+        <div class="cviz-zone-pct">${z.pct}% píxeles sospechosos</div>
+        <div class="cviz-zone-sev">${z.severity === 'alta' ? '⚠ Severidad alta' : z.severity === 'media' ? '· Severidad media' : '· Severidad baja'}</div>
+      </div>
+    </div>`).join('');
+}
+
+async function toggleColorViz() {
+  const overlay = q('#color-viz-overlay');
+  if (overlay.classList.contains('visible')) {
+    overlay.classList.remove('visible');
+    q('#lb-btn-color').classList.remove('active');
+    return;
+  }
+  const p = photos[lbIdx];
+  if (!p) { toast('No hay foto activa', 'error'); return; }
+
+  overlay.classList.add('visible');
+  q('#lb-btn-color').classList.add('active');
+
+  // Resetear estado inicial
+  ['cstat-green','cstat-suspect','cstat-result'].forEach(id => q('#'+id).textContent = '…');
+  q('#cviz-zones-list').innerHTML = '<div class="cviz-zones-loading">Analizando…</div>';
+
+  // Cargar imagen de visualización
+  if (_colorVizLoaded !== p.blob_name) {
+    const img = q('#color-viz-img');
+    img.style.opacity = '0';
+    img.src = '';
+    img.onload  = () => { img.style.opacity = '1'; };
+    img.onerror = () => {
+      toast('Error al generar análisis de color', 'error');
+      overlay.classList.remove('visible');
+      q('#lb-btn-color').classList.remove('active');
+    };
+    img.src = `/api/color-viz/${p.blob_name}`;
+    _colorVizLoaded = p.blob_name;
+  }
+
+  // Cargar stats + zonas
+  try {
+    const r = await fetch(`/api/color-stats/${p.blob_name}`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const stats = await r.json();
+
+    q('#cstat-green').textContent   = stats.pct_verde_sano + '%';
+    q('#cstat-suspect').textContent = stats.pct_sospechoso + '%';
+    const colors = { sano: '#4ade80', sospechoso: '#fbbf24', botrytis: '#f87171' };
+    q('#cstat-result').textContent = stats.assessment || '—';
+    q('#cstat-result').style.color = colors[stats.assessment] || '#a0a0a0';
+
+    _renderColorZones(stats.zonas);
+  } catch (err) {
+    ['cstat-green','cstat-suspect','cstat-result'].forEach(id => q('#'+id).textContent = '—');
+    q('#cviz-zones-list').innerHTML = '<div class="cviz-zones-loading">Error al cargar datos</div>';
+  }
+}
+
+// Cierra el overlay de color al navegar
+const _origRefreshLb = refreshLb;
+
+// ── Análisis en lote ──────────────────────────────────────────────────────
+let _batchPollTimer = null;
+
+async function startBatch() {
+  if (!curDay) return;
+  const btn = q('#btn-batch');
+  btn.disabled = true;
+  try {
+    const r = await fetch(`/api/analyze-batch/${curDay}`, { method: 'POST' }).then(r => r.json());
+    if (r.status === 'all_done') {
+      toast('Todas las fotos ya están analizadas', 'success');
+      btn.disabled = false;
+      return;
+    }
+    toast(`Analizando ${r.total} fotos con Claude…`);
+    q('#batch-bar').classList.add('active');
+    pollBatch(r.total);
+  } catch {
+    toast('Error al iniciar el análisis', 'error');
+    btn.disabled = false;
+  }
+}
+
+function pollBatch(total) {
+  clearInterval(_batchPollTimer);
+  _batchPollTimer = setInterval(async () => {
+    try {
+      const s = await fetch(`/api/analyze-batch/${curDay}/status`).then(r => r.json());
+      const pct = total > 0 ? Math.round((s.done / total) * 100) : 0;
+      q('#batch-fill').style.width  = pct + '%';
+      q('#batch-label').textContent = `${s.done} / ${total} fotos  (${s.errors} errores)`;
+      if (!s.running) {
+        clearInterval(_batchPollTimer);
+        q('#batch-bar').classList.remove('active');
+        q('#btn-batch').disabled = false;
+        toast(`Análisis completado: ${s.done} fotos`, 'success');
+        selectDay(curDay);  // refresca la grilla con los nuevos badges
+      }
+    } catch { clearInterval(_batchPollTimer); }
+  }, 2000);
+}
+
+async function cancelBatch() {
+  if (!curDay) return;
+  await fetch(`/api/analyze-batch/${curDay}/cancel`, { method: 'POST' });
+  clearInterval(_batchPollTimer);
+  q('#batch-bar').classList.remove('active');
+  q('#btn-batch').disabled = false;
+  toast('Análisis cancelado');
+}
+
+// ── Upload modal ──────────────────────────────────────────────────────────
+let _uploadFile = null;
+
+function openUploadModal() {
+  resetUploadModal();
+  q('#upload-overlay').classList.add('open');
+}
+
+// drag & drop — setup una sola vez
+(function initDrop() {
+  const dz = q('#drop-zone');
+  dz.addEventListener('dragover',  e => { e.preventDefault(); dz.classList.add('drag-over'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault(); dz.classList.remove('drag-over');
+    if (e.dataTransfer.files[0]) handleFileSelect(e.dataTransfer.files[0]);
+  });
+})();
+
+function closeUploadModal() {
+  q('#upload-overlay').classList.remove('open');
+}
+
+function overlayBgClick(e) {
+  if (e.target === q('#upload-overlay')) closeUploadModal();
+}
+
+function resetUploadModal() {
+  _uploadFile = null;
+  q('#upload-input').value = '';
+  q('#upload-preview').style.display = 'none';
+  q('#drop-hint').style.display      = 'flex';
+  q('#upload-results').style.display = 'none';
+  q('#btn-do-analyze').disabled = true;
+  q('#btn-do-analyze').textContent = 'Analizar';
+  q('#urc-status').textContent = '—'; q('#urc-status').style.color = '';
+  q('#urc-conf').textContent = '';
+  q('#urc-resumen').textContent = ''; q('#urc-resumen').style.display = 'none';
+  q('#urc-hallazgos').innerHTML = '';
+}
+
+function handleFileSelect(file) {
+  if (!file) return;
+  _uploadFile = file;
+  const prev = q('#upload-preview');
+  prev.src = URL.createObjectURL(file);
+  prev.style.display = 'block';
+  q('#drop-hint').style.display = 'none';
+  q('#upload-results').style.display = 'none';
+  q('#btn-do-analyze').disabled = false;
+}
+
+function renderUploadResult(prefix, data) {
+  const colors = { sano: '#4ade80', botrytis: '#f87171', sospechoso: '#fbbf24' };
+  if (!data) {
+    q(`#${prefix}-status`).textContent = 'No disponible';
+    q(`#${prefix}-status`).style.color = '#555';
+    return;
+  }
+  q(`#${prefix}-status`).textContent = statusLabel(data.status || '—');
+  q(`#${prefix}-status`).style.color = colors[data.status] || '#a0a0a0';
+  q(`#${prefix}-conf`).textContent   = data.confidence ? `Confianza: ${data.confidence}` : '';
+
+  const resEl = q(`#${prefix}-resumen`);
+  if (data.resumen) {
+    resEl.textContent   = data.resumen;
+    resEl.style.display = 'block';
+  }
+
+  const hallEl = q(`#${prefix}-hallazgos`);
+  const items  = Array.isArray(data.hallazgos) ? data.hallazgos : (data.notes ? [data.notes] : []);
+  hallEl.innerHTML = items.map(h =>
+    `<div class="upload-result-hallazgo">${h}</div>`
+  ).join('');
+}
+
+async function analyzeUpload() {
+  if (!_uploadFile) return;
+  const btn = q('#btn-do-analyze');
+  btn.disabled = true;
+  btn.textContent = 'Analizando…';
+  q('#upload-results').style.display = 'flex';
+  q('#urc-status').textContent = '…'; q('#urc-status').style.color = '';
+
+  const fd = new FormData();
+  fd.append('file', _uploadFile);
+
+  try {
+    const res = await fetch('/api/upload-analyze', { method: 'POST', body: fd });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    renderUploadResult('urc', data.claude);
+  } catch (err) {
+    toast('Error al analizar la imagen', 'error');
+    q('#urc-status').textContent = 'Error';
+  }
+  btn.disabled = false;
+  btn.textContent = 'Analizar de nuevo';
+}
+
 </script>
 </body>
 </html>

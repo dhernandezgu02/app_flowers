@@ -1,0 +1,18 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "gallery/app.py",
+      "use": "@vercel/python",
+      "config": {
+        "includeFiles": ["gallery/templates/index.html"]
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "gallery/app.py"
+    }
+  ]
+}
