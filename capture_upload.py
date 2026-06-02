@@ -20,6 +20,7 @@ import datetime
 import os
 import sys
 import time
+from typing import Optional
 
 import cv2
 import numpy as np
@@ -108,7 +109,7 @@ def open_camera(camera_type: str, exposure_ms: float = 0) -> cv2.VideoCapture:
 #  Nitidez (sharpness)
 # ══════════════════════════════════════════════════════════════════════════════
 
-def sharpness_score(frame: np.ndarray, roi: tuple | None = None) -> float:
+def sharpness_score(frame: np.ndarray, roi: Optional[tuple] = None) -> float:
     """Varianza del Laplaciano en la ROI.
     Valor alto → imagen nítida.  Valor bajo → imagen borrosa / motion-blur.
     """
@@ -121,7 +122,7 @@ def sharpness_score(frame: np.ndarray, roi: tuple | None = None) -> float:
     return cv2.Laplacian(gray, cv2.CV_64F).var()
 
 
-def best_frame_from_burst(frames: list[np.ndarray], roi: tuple | None = None
+def best_frame_from_burst(frames: list, roi: Optional[tuple] = None
                           ) -> tuple[np.ndarray, float]:
     """Devuelve el frame más nítido de la ráfaga y su score."""
     scores = [sharpness_score(f, roi) for f in frames]
