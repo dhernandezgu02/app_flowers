@@ -36,6 +36,7 @@ NUM_FOTOS        = 5          # fotos totales (modo interval)
 CAMERA_INDEX     = 0
 IMAGE_FORMAT     = "jpg"
 JPEG_QUALITY     = 92
+SHARPEN_STRENGTH = 0.0   # 0=sin filtro, 0.8=suave, 1.5=fuerte
 
 # ── Parámetros modo conveyor ──────────────────────────────────────────────────
 # Zona central (ROI) donde se evalúa si hay una flor: fracción del frame
@@ -141,6 +142,12 @@ def upload_to_gcs(image_bytes: bytes, filename: str, bucket: storage.Bucket) -> 
     return f"gs://{bucket.name}/{blob_name}"
 
 
+def sharpen_frame(frame: np.ndarray, strength: float = 1.0) -> np.ndarray:
+    """Unsharp mask: realza bordes sin introducir ruido excesivo."""
+    blurred = cv2.GaussianBlur(frame, (0, 0), 3)
+    return cv2.addWeighted(frame, 1.0 + strength, blurred, -strength, 0)
+
+
 def frame_to_bytes(frame: np.ndarray) -> bytes:
     encode_params = [cv2.IMWRITE_JPEG_QUALITY, JPEG_QUALITY]
     success, buf = cv2.imencode(f".{IMAGE_FORMAT}", frame, encode_params)
@@ -176,6 +183,8 @@ def run_interval_mode(cap, bucket, num_fotos: int, interval: int):
             if score < SHARPNESS_MIN:
                 print("RECHAZADA (borrosa) — no se sube")
             else:
+                if SHARPEN_STRENGTH > 0:
+                    frame = sharpen_frame(frame, SHARPEN_STRENGTH)
                 filename = build_filename()
                 uri = upload_to_gcs(frame_to_bytes(frame), filename, bucket)
                 print(f"Subida: {uri}  ({len(frame_to_bytes(frame))//1024} KB)")
@@ -287,6 +296,8 @@ def run_conveyor_mode(cap, bucket, debug: bool = False, max_fotos: int = 0):
                 continue
 
             # ── Subir la mejor foto ───────────────────────────────────────
+            if SHARPEN_STRENGTH > 0:
+                best = sharpen_frame(best, SHARPEN_STRENGTH)
             filename  = build_filename("flor")
             img_bytes = frame_to_bytes(best)
             uri       = upload_to_gcs(img_bytes, filename, bucket)
@@ -328,7 +339,7 @@ def _roi_pixels(w: int, h: int):
 # ══════════════════════════════════════════════════════════════════════════════
 
 def main():
-    global SHARPNESS_MIN, BURST_FRAMES, COOLDOWN_SECS
+    global SHARPNESS_MIN, BURST_FRAMES, COOLDOWN_SECS, SHARPEN_STRENGTH
 
     parser = argparse.ArgumentParser(
         description="Captura y sube fotos a GCS desde la Jetson."
@@ -353,15 +364,18 @@ def main():
     parser.add_argument("--zoom-level", type=int, default=100,
                         help="Zoom de la cámara (100=mínimo/más amplio, 500=máximo zoom). "
                              "Usar 100 para capturar más tallo. Solo USB.")
+    parser.add_argument("--sharpen", type=float, default=0.0,
+                        help="Intensidad de nitidez: 0=sin filtro, 0.8=suave, 1.5=fuerte (default: 0)")
     parser.add_argument("--debug", action="store_true",
                         help="[conveyor] Muestra ventana de video en vivo con ROI y métricas")
     args = parser.parse_args()
 
     # Aplica parámetros CLI a globals para que las funciones los usen
-    SHARPNESS_MIN = args.sharpness_min
-    BURST_FRAMES  = args.burst
-    COOLDOWN_SECS = args.cooldown
-    CAMERA_ZOOM   = args.zoom_level
+    SHARPNESS_MIN    = args.sharpness_min
+    BURST_FRAMES     = args.burst
+    COOLDOWN_SECS    = args.cooldown
+    SHARPEN_STRENGTH = args.sharpen
+    CAMERA_ZOOM      = args.zoom_level
 
     # ── Credenciales GCS ──────────────────────────────────────────────────
     if not os.path.exists(CREDENTIALS_FILE):
