@@ -37,6 +37,7 @@ CAMERA_INDEX     = 0
 IMAGE_FORMAT     = "jpg"
 JPEG_QUALITY     = 92
 SHARPEN_STRENGTH = 0.0   # 0=sin filtro, 0.8=suave, 1.5=fuerte
+CAMERA_ZOOM      = 100   # 100=sin zoom (más amplio), valores mayores = más zoom
 
 # ── Parámetros modo conveyor ──────────────────────────────────────────────────
 # Zona central (ROI) donde se evalúa si hay una flor: fracción del frame
@@ -91,9 +92,8 @@ def open_camera(camera_type: str, exposure_ms: float = 0) -> cv2.VideoCapture:
         cap.set(cv2.CAP_PROP_FRAME_WIDTH,  1920)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
         cap.set(cv2.CAP_PROP_FPS, 60)
-        # Zoom mínimo → campo visual máximo (funciona en cámaras con zoom digital)
-        cap.set(cv2.CAP_PROP_ZOOM, 100)
-        cap.set(cv2.CAP_PROP_FOCUS, 0)   # autofocus off + foco al infinito
+        cap.set(cv2.CAP_PROP_ZOOM, CAMERA_ZOOM)
+        cap.set(cv2.CAP_PROP_FOCUS, 0)
         if exposure_ms > 0:
             cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1)
             cap.set(cv2.CAP_PROP_EXPOSURE, -round(exposure_ms))
@@ -339,7 +339,7 @@ def _roi_pixels(w: int, h: int):
 # ══════════════════════════════════════════════════════════════════════════════
 
 def main():
-    global SHARPNESS_MIN, BURST_FRAMES, COOLDOWN_SECS, SHARPEN_STRENGTH
+    global SHARPNESS_MIN, BURST_FRAMES, COOLDOWN_SECS, SHARPEN_STRENGTH, CAMERA_ZOOM
 
     parser = argparse.ArgumentParser(
         description="Captura y sube fotos a GCS desde la Jetson."
@@ -376,6 +376,7 @@ def main():
     COOLDOWN_SECS    = args.cooldown
     SHARPEN_STRENGTH = args.sharpen
     CAMERA_ZOOM      = args.zoom_level
+    print(f"[INFO] Zoom configurado: {CAMERA_ZOOM}")
 
     # ── Credenciales GCS ──────────────────────────────────────────────────
     if not os.path.exists(CREDENTIALS_FILE):
