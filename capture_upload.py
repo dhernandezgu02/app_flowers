@@ -327,6 +327,8 @@ def _roi_pixels(w: int, h: int) -> tuple[int, int, int, int]:
 # ══════════════════════════════════════════════════════════════════════════════
 
 def main():
+    global SHARPNESS_MIN, BURST_FRAMES, COOLDOWN_SECS
+
     parser = argparse.ArgumentParser(
         description="Captura y sube fotos a GCS desde la Jetson."
     )
@@ -355,7 +357,6 @@ def main():
     args = parser.parse_args()
 
     # Aplica parámetros CLI a globals para que las funciones los usen
-    global SHARPNESS_MIN, BURST_FRAMES, COOLDOWN_SECS
     SHARPNESS_MIN = args.sharpness_min
     BURST_FRAMES  = args.burst
     COOLDOWN_SECS = args.cooldown
