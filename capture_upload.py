@@ -123,7 +123,7 @@ def sharpness_score(frame: np.ndarray, roi: Optional[tuple] = None) -> float:
 
 
 def best_frame_from_burst(frames: list, roi: Optional[tuple] = None
-                          ) -> tuple[np.ndarray, float]:
+                          ):
     """Devuelve el frame más nítido de la ráfaga y su score."""
     scores = [sharpness_score(f, roi) for f in frames]
     best_idx = int(np.argmax(scores))
@@ -310,13 +310,13 @@ def run_conveyor_mode(cap, bucket, debug: bool = False, max_fotos: int = 0):
 #  Helpers
 # ══════════════════════════════════════════════════════════════════════════════
 
-def _frame_size(cap: cv2.VideoCapture) -> tuple[int, int]:
+def _frame_size(cap: cv2.VideoCapture):
     w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     return h, w
 
 
-def _roi_pixels(w: int, h: int) -> tuple[int, int, int, int]:
+def _roi_pixels(w: int, h: int):
     return (
         int(w * ROI_X1), int(h * ROI_Y1),
         int(w * ROI_X2), int(h * ROI_Y2),
