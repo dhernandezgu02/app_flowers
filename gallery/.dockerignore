@@ -1,8 +1,7 @@
-venv/
 __pycache__/
 *.pyc
 *.pyo
+credentials.json
 *.json
-!vercel.json
 .env
-.vercel
+README.md

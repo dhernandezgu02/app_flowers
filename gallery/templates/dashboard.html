@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FlowerGallery — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+button, a { font-family: inherit; }
+
+:root {
+  --bg:          #0a0a0a;
+  --surface:     #181818;
+  --surface-2:   #202020;
+  --border:      #242424;
+  --border-2:    #303030;
+  --accent:      #22c55e;
+  --accent-glow: rgba(34,197,94,.18);
+  --accent-ring: rgba(34,197,94,.28);
+  --text:        #f0f0f0;
+  --text-2:      #a0a0a0;
+  --text-3:      #555;
+  --r:           10px;
+  --ease:        cubic-bezier(.4,0,.2,1);
+  --sano:        #22c55e;
+  --sosp:        #f59e0b;
+  --bot:         #ef4444;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar          { width: 5px; }
+::-webkit-scrollbar-track    { background: transparent; }
+::-webkit-scrollbar-thumb    { background: #2e2e2e; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #444; }
+
+/* ── Top nav ─────────────────────────────────────────────────────────────── */
+.top-nav {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(10,10,10,.92);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  height: 56px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 20px;
+}
+
+.nav-brand {
+  display: flex; align-items: center; gap: 10px;
+  flex-shrink: 0;
+}
+.nav-logo-icon {
+  width: 32px; height: 32px;
+  background: var(--accent-glow);
+  border: 1px solid var(--accent-ring);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px;
+}
+.nav-brand-name { font-size: 15px; font-weight: 600; letter-spacing: -.3px; }
+
+.nav-tabs {
+  display: flex; align-items: center;
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: 9px;
+  padding: 3px;
+  gap: 2px;
+}
+.nav-tab {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 14px;
+  border-radius: 7px;
+  font-size: 12.5px; font-weight: 500;
+  color: var(--text-2);
+  text-decoration: none;
+  transition: all 120ms var(--ease);
+}
+.nav-tab:hover { color: var(--text); background: var(--surface-2); }
+.nav-tab.active {
+  background: var(--accent-glow);
+  color: var(--accent);
+  border: 1px solid var(--accent-ring);
+}
+
+.nav-right { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.nav-reload-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 12px; border-radius: 8px;
+  background: var(--surface); border: 1px solid var(--border-2);
+  color: var(--text-2); font-size: 12px; cursor: pointer;
+  transition: all 120ms;
+}
+.nav-reload-btn:hover { background: var(--surface-2); color: var(--text); }
+
+/* ── Content ─────────────────────────────────────────────────────────────── */
+.dash-wrap {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 28px 32px 60px;
+}
+
+.section-label {
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .7px; color: var(--text-3);
+  margin-bottom: 12px;
+}
+
+/* ── Summary cards ───────────────────────────────────────────────────────── */
+.cards-row {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+@media (max-width: 900px) {
+  .cards-row { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 600px) {
+  .cards-row { grid-template-columns: repeat(2, 1fr); }
+  .dash-wrap { padding: 16px; }
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 18px 20px;
+  display: flex; flex-direction: column; gap: 6px;
+  transition: border-color 150ms;
+}
+.stat-card:hover { border-color: var(--border-2); }
+
+.stat-card-label {
+  font-size: 11px; text-transform: uppercase;
+  letter-spacing: .5px; color: var(--text-3); font-weight: 500;
+}
+.stat-card-val {
+  font-size: 32px; font-weight: 700; letter-spacing: -1px; line-height: 1;
+}
+.stat-card-sub { font-size: 11.5px; color: var(--text-3); margin-top: 2px; }
+
+.card-total    .stat-card-val { color: var(--text); }
+.card-analyzed .stat-card-val { color: var(--text-2); }
+.card-sano     .stat-card-val { color: var(--sano); }
+.card-sosp     .stat-card-val { color: var(--sosp); }
+.card-bot      .stat-card-val { color: var(--bot); }
+
+.card-bot { border-color: rgba(239,68,68,.18); }
+.card-bot:hover { border-color: rgba(239,68,68,.3); }
+.card-sosp { border-color: rgba(245,158,11,.14); }
+.card-sosp:hover { border-color: rgba(245,158,11,.28); }
+.card-sano { border-color: rgba(34,197,94,.14); }
+.card-sano:hover { border-color: rgba(34,197,94,.28); }
+
+/* ── Chart ───────────────────────────────────────────────────────────────── */
+.chart-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 20px;
+  margin-bottom: 28px;
+  position: relative;
+}
+.chart-card canvas { display: block; }
+
+/* ── Analysis table ──────────────────────────────────────────────────────── */
+.table-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+
+.analysis-table {
+  width: 100%; border-collapse: collapse;
+}
+.analysis-table th {
+  padding: 11px 16px;
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .5px; color: var(--text-3);
+  text-align: left;
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+.analysis-table td {
+  padding: 12px 16px;
+  font-size: 13px; color: var(--text-2);
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.analysis-table tbody tr:last-child td { border-bottom: none; }
+.analysis-table tbody tr {
+  cursor: pointer;
+  transition: background 100ms;
+}
+.analysis-table tbody tr:hover { background: var(--surface-2); }
+.analysis-table tbody tr.expanded { background: var(--accent-glow); }
+
+.td-date { color: var(--text); font-weight: 500; }
+.td-total { font-weight: 600; color: var(--text); }
+
+.bar-cell { display: flex; align-items: center; gap: 8px; }
+.mini-bar-wrap {
+  flex: 1; height: 6px; background: var(--border-2);
+  border-radius: 3px; overflow: hidden; min-width: 60px;
+}
+.mini-bar { height: 100%; border-radius: 3px; transition: width 400ms var(--ease); }
+.bar-sano  .mini-bar { background: var(--sano); }
+.bar-sosp  .mini-bar { background: var(--sosp); }
+.bar-bot   .mini-bar { background: var(--bot); }
+.bar-val { font-size: 12px; color: var(--text-2); white-space: nowrap; min-width: 36px; }
+
+.coverage-pill {
+  display: inline-block;
+  padding: 2px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 600;
+}
+.cov-full  { background: rgba(34,197,94,.12);  color: var(--sano); border: 1px solid rgba(34,197,94,.25); }
+.cov-part  { background: rgba(245,158,11,.12); color: var(--sosp); border: 1px solid rgba(245,158,11,.25); }
+.cov-none  { background: rgba(255,255,255,.05); color: var(--text-3); border: 1px solid var(--border-2); }
+
+.btn-row { display: flex; gap: 6px; }
+.tbl-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 5px 11px; border-radius: 7px;
+  font-size: 11.5px; font-weight: 500; cursor: pointer;
+  border: 1px solid var(--border-2);
+  background: var(--surface-2); color: var(--text-2);
+  transition: all 120ms; white-space: nowrap;
+}
+.tbl-btn:hover { background: #2a2a2a; color: var(--text); }
+.tbl-btn-batch {
+  background: rgba(34,197,94,.08);
+  border-color: rgba(34,197,94,.22);
+  color: var(--accent);
+}
+.tbl-btn-batch:hover { background: rgba(34,197,94,.16); }
+.tbl-btn-batch:disabled { opacity: .45; cursor: default; transform: none; }
+
+/* ── Day detail ──────────────────────────────────────────────────────────── */
+.detail-section {
+  margin-top: 28px;
+  display: none;
+}
+.detail-section.visible { display: block; }
+
+.detail-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px;
+}
+.detail-title {
+  font-size: 14px; font-weight: 600;
+}
+.detail-close {
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 12px; border-radius: 7px;
+  font-size: 12px; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--border-2);
+  color: var(--text-3);
+  transition: all 120ms;
+}
+.detail-close:hover { color: var(--text); border-color: #3a3a3a; }
+
+.detail-table-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+.detail-table {
+  width: 100%; border-collapse: collapse;
+}
+.detail-table th {
+  padding: 10px 14px;
+  font-size: 11px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .5px; color: var(--text-3);
+  background: var(--surface-2);
+  border-bottom: 1px solid var(--border);
+  text-align: left; white-space: nowrap;
+}
+.detail-table td {
+  padding: 10px 14px;
+  font-size: 12.5px; color: var(--text-2);
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+.detail-table tbody tr:last-child td { border-bottom: none; }
+.detail-table tbody tr:hover { background: rgba(255,255,255,.025); }
+
+.thumb-cell img {
+  width: 56px; height: 42px;
+  object-fit: cover; border-radius: 5px;
+  background: var(--surface-2);
+  display: block;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 2px 9px; border-radius: 20px;
+  font-size: 10.5px; font-weight: 700;
+  letter-spacing: .3px; text-transform: uppercase; white-space: nowrap;
+}
+.badge-sano       { background: rgba(34,197,94,.15);  color: #4ade80; border: 1px solid rgba(34,197,94,.3); }
+.badge-botrytis   { background: rgba(239,68,68,.15);  color: #f87171; border: 1px solid rgba(239,68,68,.3); }
+.badge-sospechoso { background: rgba(245,158,11,.15); color: #fbbf24; border: 1px solid rgba(245,158,11,.3); }
+.badge-pending    { background: rgba(255,255,255,.05); color: var(--text-3); border: 1px solid var(--border-2); }
+
+.resumen-cell {
+  max-width: 340px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  font-size: 12px; color: var(--text-3);
+}
+
+.conf-cell { font-size: 12px; white-space: nowrap; }
+.conf-alta  { color: var(--sano); }
+.conf-media { color: var(--sosp); }
+.conf-baja  { color: var(--bot); }
+
+.detail-loading {
+  padding: 32px; text-align: center;
+  color: var(--text-3); font-size: 13px;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.spinner {
+  width: 18px; height: 18px;
+  border: 2px solid rgba(255,255,255,.08);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .65s linear infinite;
+  flex-shrink: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Batch inline progress ───────────────────────────────────────────────── */
+.batch-inline {
+  display: flex; align-items: center; gap: 8px; margin-top: 4px;
+}
+.batch-track-sm {
+  flex: 1; max-width: 120px; height: 4px;
+  background: var(--border-2); border-radius: 2px; overflow: hidden;
+}
+.batch-fill-sm {
+  height: 100%; background: var(--accent); border-radius: 2px;
+  transition: width 600ms ease; width: 0%;
+}
+.batch-label-sm { font-size: 10.5px; color: var(--text-3); white-space: nowrap; }
+
+/* ── Empty / loading states ──────────────────────────────────────────────── */
+.page-loading {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  padding: 80px 0; color: var(--text-3); font-size: 14px;
+}
+
+/* ── Toast ───────────────────────────────────────────────────────────────── */
+.toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 99999;
+  background: var(--surface-2);
+  border: 1px solid var(--border-2);
+  padding: 11px 18px; border-radius: 10px;
+  font-size: 13px; color: var(--text-2);
+  box-shadow: 0 8px 28px rgba(0,0,0,.45);
+  transform: translateY(16px); opacity: 0;
+  transition: all 280ms var(--ease);
+  max-width: 320px; pointer-events: none;
+}
+.toast.show             { transform: translateY(0); opacity: 1; }
+.toast.success          { border-color: rgba(34,197,94,.35); color: var(--accent); }
+.toast.error            { border-color: rgba(239,68,68,.35); color: #f87171; }
+
+/* ── Analysis modal ──────────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 10000;
+  background: rgba(0,0,0,.82);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  opacity: 0; pointer-events: none;
+  transition: opacity 180ms var(--ease);
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+
+.modal-panel {
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: 14px;
+  width: 860px; max-width: 100%;
+  max-height: 90vh;
+  display: flex; flex-direction: column;
+  box-shadow: 0 28px 70px rgba(0,0,0,.7);
+  overflow: hidden;
+}
+
+.modal-head {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px;
+  flex-shrink: 0;
+}
+.modal-head-info { flex: 1; min-width: 0; }
+.modal-head-name {
+  font-size: 13px; font-weight: 500; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.modal-head-meta { font-size: 11.5px; color: var(--text-3); margin-top: 2px; }
+.modal-close {
+  width: 32px; height: 32px; border-radius: 7px;
+  background: transparent; border: none;
+  color: var(--text-3); cursor: pointer; font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 120ms; flex-shrink: 0;
+}
+.modal-close:hover { background: var(--surface-2); color: var(--text); }
+
+.modal-body {
+  display: flex; gap: 0; flex: 1; overflow: hidden; min-height: 0;
+}
+
+.modal-img-col {
+  width: 340px; flex-shrink: 0;
+  background: #0d0d0d;
+  display: flex; align-items: center; justify-content: center;
+  padding: 16px;
+  border-right: 1px solid var(--border);
+}
+.modal-img-col img {
+  max-width: 100%; max-height: 420px;
+  object-fit: contain; border-radius: 8px;
+  display: block;
+}
+.modal-img-loading {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 10px;
+  color: var(--text-3); font-size: 12px;
+}
+
+.modal-result-col {
+  flex: 1; overflow-y: auto; padding: 18px 20px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+
+.modal-status-row {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+.modal-status-big {
+  font-size: 22px; font-weight: 700; letter-spacing: -.5px;
+}
+.modal-conf-tag {
+  font-size: 11px; padding: 2px 9px; border-radius: 20px;
+  background: var(--surface-2); border: 1px solid var(--border-2);
+  color: var(--text-3);
+}
+
+.modal-section-label {
+  font-size: 10px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: .6px; color: var(--text-3); margin-bottom: 5px;
+}
+.modal-resumen {
+  font-size: 12.5px; color: var(--text-2); line-height: 1.6;
+  padding: 10px 12px;
+  background: rgba(255,255,255,.03);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.modal-hallazgos { display: flex; flex-direction: column; gap: 4px; }
+.modal-hallazgo {
+  font-size: 12px; color: var(--text-2); line-height: 1.5;
+  padding-left: 14px; position: relative;
+}
+.modal-hallazgo::before { content:'·'; position:absolute; left:3px; color:var(--text-3); }
+
+.modal-anomalias { display: flex; flex-direction: column; gap: 4px; }
+.modal-anomalia {
+  font-size: 12px; color: #fbbf24; line-height: 1.5;
+  padding-left: 16px; position: relative;
+}
+.modal-anomalia::before { content:'⚠'; position:absolute; left:0; font-size:9px; top:3px; }
+
+.modal-descripcion {
+  font-size: 12px; color: var(--text-3); line-height: 1.7;
+  padding: 10px 12px;
+  background: rgba(255,255,255,.02);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.modal-pending {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 14px; height: 100%; color: var(--text-3); font-size: 13px;
+  text-align: center; padding: 20px;
+}
+
+.modal-foot {
+  padding: 12px 18px;
+  border-top: 1px solid var(--border);
+  display: flex; justify-content: flex-end; align-items: center;
+  gap: 8px; flex-shrink: 0;
+}
+.modal-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: 8px;
+  font-size: 12.5px; font-weight: 500; cursor: pointer;
+  border: 1px solid var(--border-2);
+  background: var(--surface-2); color: var(--text-2);
+  transition: all 120ms;
+}
+.modal-btn:hover { background: #2a2a2a; color: var(--text); }
+.modal-btn:disabled { opacity: .45; cursor: default; }
+.modal-btn-analyze {
+  background: rgba(34,197,94,.08);
+  border-color: rgba(34,197,94,.25);
+  color: var(--accent);
+}
+.modal-btn-analyze:hover { background: rgba(34,197,94,.16); }
+.modal-btn-reanalyze {
+  background: rgba(139,92,246,.08);
+  border-color: rgba(139,92,246,.25);
+  color: #a78bfa;
+}
+.modal-btn-reanalyze:hover { background: rgba(139,92,246,.15); }
+
+/* row action buttons */
+.row-action-btn {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 6px;
+  font-size: 11px; font-weight: 500; cursor: pointer; white-space: nowrap;
+  border: 1px solid var(--border-2);
+  background: var(--surface-2); color: var(--text-2);
+  transition: all 120ms;
+}
+.row-action-btn:hover { background: #2a2a2a; color: var(--text); }
+.row-action-btn.btn-analyze {
+  background: rgba(34,197,94,.07);
+  border-color: rgba(34,197,94,.22); color: #4ade80;
+}
+.row-action-btn.btn-analyze:hover { background: rgba(34,197,94,.14); }
+.row-action-btn.btn-view {
+  background: rgba(139,92,246,.07);
+  border-color: rgba(139,92,246,.22); color: #a78bfa;
+}
+.row-action-btn.btn-view:hover { background: rgba(139,92,246,.14); }
+</style>
+</head>
+<body>
+
+<!-- ── Top nav ───────────────────────────────────────────────────────────── -->
+<nav class="top-nav">
+  <div class="nav-brand">
+    <div class="nav-logo-icon">🌸</div>
+    <div class="nav-brand-name">FlowerGallery</div>
+  </div>
+
+  <div class="nav-tabs">
+    <a href="/" class="nav-tab">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+        <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+      </svg>
+      Galería
+    </a>
+    <a href="/dashboard" class="nav-tab active">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M3 3v18h18"/><path d="m7 16 4-4 4 4 4-5"/>
+      </svg>
+      Dashboard
+    </a>
+  </div>
+
+  <div class="nav-right">
+    <button class="nav-reload-btn" onclick="loadStats()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M1 4v6h6"/><path d="M23 20v-6h-6"/>
+        <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/>
+      </svg>
+      Actualizar
+    </button>
+  </div>
+</nav>
+
+<!-- ── Content ───────────────────────────────────────────────────────────── -->
+<div class="dash-wrap">
+
+  <!-- Loading state -->
+  <div class="page-loading" id="page-loading">
+    <div class="spinner" style="width:22px;height:22px;border-width:2.5px"></div>
+    Cargando datos…
+  </div>
+
+  <!-- Main content (hidden until loaded) -->
+  <div id="dash-content" style="display:none">
+
+    <!-- ── Summary cards ─────────────────────────────────────────────────── -->
+    <div class="section-label">Resumen general</div>
+    <div class="cards-row">
+      <div class="stat-card card-total">
+        <div class="stat-card-label">Total fotos</div>
+        <div class="stat-card-val" id="sc-total">—</div>
+        <div class="stat-card-sub" id="sc-days-sub">—</div>
+      </div>
+      <div class="stat-card card-analyzed">
+        <div class="stat-card-label">Analizadas</div>
+        <div class="stat-card-val" id="sc-analyzed">—</div>
+        <div class="stat-card-sub" id="sc-analyzed-pct">—</div>
+      </div>
+      <div class="stat-card card-sano">
+        <div class="stat-card-label">Sanas</div>
+        <div class="stat-card-val" id="sc-sano">—</div>
+        <div class="stat-card-sub" id="sc-sano-pct">—</div>
+      </div>
+      <div class="stat-card card-sosp">
+        <div class="stat-card-label">Sospechosas</div>
+        <div class="stat-card-val" id="sc-sosp">—</div>
+        <div class="stat-card-sub" id="sc-sosp-pct">—</div>
+      </div>
+      <div class="stat-card card-bot">
+        <div class="stat-card-label">Botrytis</div>
+        <div class="stat-card-val" id="sc-bot">—</div>
+        <div class="stat-card-sub" id="sc-bot-pct">—</div>
+      </div>
+    </div>
+
+    <!-- ── Chart ─────────────────────────────────────────────────────────── -->
+    <div class="section-label">Distribución por día</div>
+    <div class="chart-card">
+      <canvas id="chart-days" height="110"></canvas>
+    </div>
+
+    <!-- ── Table ─────────────────────────────────────────────────────────── -->
+    <div class="section-label" style="margin-top:28px">Análisis por día</div>
+    <div class="table-card">
+      <table class="analysis-table">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Total</th>
+            <th style="min-width:130px">Sanas</th>
+            <th style="min-width:130px">Sospechosas</th>
+            <th style="min-width:130px">Botrytis</th>
+            <th>Cobertura</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+
+    <!-- ── Day detail ────────────────────────────────────────────────────── -->
+    <div class="detail-section" id="detail-section">
+      <div class="detail-header">
+        <div class="detail-title" id="detail-title">Detalle del día</div>
+        <button class="detail-close" onclick="closeDetail()">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+          Cerrar
+        </button>
+      </div>
+      <div class="detail-table-card" id="detail-table-card">
+        <div class="detail-loading" id="detail-loading">
+          <div class="spinner"></div> Cargando…
+        </div>
+        <table class="detail-table" id="detail-table" style="display:none">
+          <thead>
+            <tr>
+              <th>Miniatura</th>
+              <th>Archivo</th>
+              <th>Hora</th>
+              <th>Estado</th>
+              <th>Confianza</th>
+              <th>Diagnóstico</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="detail-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- /#dash-content -->
+</div><!-- /.dash-wrap -->
+
+<div class="toast" id="toast"></div>
+
+<!-- ── Analysis Modal ────────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="modal-overlay" onclick="modalBgClick(event)">
+  <div class="modal-panel" onclick="event.stopPropagation()">
+
+    <div class="modal-head">
+      <div class="modal-head-info">
+        <div class="modal-head-name" id="modal-filename"></div>
+        <div class="modal-head-meta" id="modal-meta"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()" title="Cerrar">×</button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Imagen -->
+      <div class="modal-img-col" id="modal-img-col">
+        <div class="modal-img-loading" id="modal-img-loading">
+          <div class="spinner" style="width:24px;height:24px;border-width:2.5px"></div>
+          Cargando imagen…
+        </div>
+        <img id="modal-img" alt="" style="display:none"
+             onload="this.style.display='block'; document.getElementById('modal-img-loading').style.display='none'">
+      </div>
+
+      <!-- Resultado -->
+      <div class="modal-result-col" id="modal-result-col">
+        <!-- Estado: pendiente de análisis -->
+        <div class="modal-pending" id="modal-pending" style="display:none">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#444" stroke-width="1.5">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+          </svg>
+          <span>Esta foto aún no ha sido analizada.</span>
+          <span style="font-size:12px">Usa el botón <strong style="color:var(--accent)">Analizar</strong> para ejecutar el diagnóstico con Claude.</span>
+        </div>
+
+        <!-- Resultado del análisis -->
+        <div id="modal-result" style="display:none">
+          <div class="modal-status-row">
+            <div class="modal-status-big" id="modal-status-text"></div>
+            <div class="modal-conf-tag"   id="modal-conf-tag"></div>
+          </div>
+
+          <div>
+            <div class="modal-section-label">Diagnóstico</div>
+            <div class="modal-resumen" id="modal-resumen"></div>
+          </div>
+
+          <div id="modal-hallazgos-wrap">
+            <div class="modal-section-label">Hallazgos</div>
+            <div class="modal-hallazgos" id="modal-hallazgos"></div>
+          </div>
+
+          <div id="modal-anomalias-wrap" style="display:none">
+            <div class="modal-section-label">Anomalías físicas</div>
+            <div class="modal-anomalias" id="modal-anomalias"></div>
+          </div>
+
+          <div id="modal-desc-wrap" style="display:none">
+            <div class="modal-section-label">Descripción técnica</div>
+            <div class="modal-descripcion" id="modal-descripcion"></div>
+          </div>
+        </div>
+
+        <!-- Analizando spinner -->
+        <div class="modal-pending" id="modal-analyzing" style="display:none">
+          <div class="spinner" style="width:28px;height:28px;border-width:2.5px"></div>
+          <span>Analizando con Claude…</span>
+          <span style="font-size:12px;color:var(--text-3)">Esto puede tardar unos segundos</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-foot">
+      <button class="modal-btn modal-btn-reanalyze" id="modal-btn-reanalyze"
+              onclick="runAnalysis(true)" style="display:none">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M1 4v6h6"/><path d="M23 20v-6h-6"/>
+          <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/>
+        </svg>
+        Re-analizar
+      </button>
+      <button class="modal-btn modal-btn-analyze" id="modal-btn-analyze"
+              onclick="runAnalysis(false)" style="display:none">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v3h3"/>
+        </svg>
+        Analizar
+      </button>
+      <button class="modal-btn" onclick="closeModal()">Cerrar</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const q = s => document.querySelector(s);
+function fmtSize(b) { return b >= 1048576 ? (b/1048576).toFixed(1)+' MB' : Math.round(b/1024)+' KB'; }
+let _chart = null;
+let _expandedDay = null;
+let _batchTimers = {};
+let _statsData = null;
+
+// ── Toast ──────────────────────────────────────────────────────────────────
+let _toastTmr = null;
+function toast(msg, type = '') {
+  const el = q('#toast');
+  el.textContent = msg;
+  el.className = 'toast show ' + type;
+  clearTimeout(_toastTmr);
+  _toastTmr = setTimeout(() => { el.className = 'toast'; }, 3800);
+}
+
+// ── Load stats ─────────────────────────────────────────────────────────────
+async function loadStats() {
+  q('#page-loading').style.display = 'flex';
+  q('#dash-content').style.display = 'none';
+  try {
+    const data = await fetch('/api/stats').then(r => r.json());
+    _statsData = data;
+    renderSummaryCards(data.summary, data.days.length);
+    renderChart(data.days);
+    renderTable(data.days);
+    q('#page-loading').style.display = 'none';
+    q('#dash-content').style.display = 'block';
+  } catch (e) {
+    q('#page-loading').innerHTML = '<span style="color:#f87171">Error al cargar datos del servidor</span>';
+  }
+}
+
+// ── Summary cards ──────────────────────────────────────────────────────────
+function pct(n, total) {
+  if (!total) return '0%';
+  return Math.round(n / total * 100) + '%';
+}
+
+function renderSummaryCards(s, numDays) {
+  q('#sc-total').textContent    = s.total;
+  q('#sc-days-sub').textContent = numDays + (numDays === 1 ? ' día' : ' días');
+
+  q('#sc-analyzed').textContent    = s.analyzed;
+  q('#sc-analyzed-pct').textContent = pct(s.analyzed, s.total) + ' analizadas';
+
+  q('#sc-sano').textContent    = s.sano;
+  q('#sc-sano-pct').textContent = pct(s.sano, s.analyzed) + ' del total analizado';
+
+  q('#sc-sosp').textContent    = s.sospechoso;
+  q('#sc-sosp-pct').textContent = pct(s.sospechoso, s.analyzed) + ' del total analizado';
+
+  q('#sc-bot').textContent    = s.botrytis;
+  q('#sc-bot-pct').textContent = pct(s.botrytis, s.analyzed) + ' del total analizado';
+}
+
+// ── Chart ──────────────────────────────────────────────────────────────────
+function renderChart(days) {
+  const recent = [...days].reverse().slice(-20); // hasta 20 días más recientes
+  const labels = recent.map(d => d.label.replace(/ \d{4}$/, '')); // quita el año
+  const sanos       = recent.map(d => d.sano);
+  const sospechosos = recent.map(d => d.sospechoso);
+  const botrytis    = recent.map(d => d.botrytis);
+  const pending     = recent.map(d => d.total - d.analyzed);
+
+  const ctx = q('#chart-days').getContext('2d');
+  if (_chart) _chart.destroy();
+
+  Chart.defaults.color = '#555';
+  Chart.defaults.borderColor = '#242424';
+
+  _chart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Sin analizar', data: pending,     backgroundColor: 'rgba(255,255,255,.08)', borderRadius: 3 },
+        { label: 'Sanas',        data: sanos,       backgroundColor: 'rgba(34,197,94,.65)',   borderRadius: 3 },
+        { label: 'Sospechosas',  data: sospechosos, backgroundColor: 'rgba(245,158,11,.65)',  borderRadius: 3 },
+        { label: 'Botrytis',     data: botrytis,    backgroundColor: 'rgba(239,68,68,.65)',   borderRadius: 3 },
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: {
+          position: 'top',
+          labels: { color: '#a0a0a0', font: { size: 11, family: 'Inter' }, boxWidth: 12, padding: 16 }
+        },
+        tooltip: {
+          backgroundColor: '#181818',
+          borderColor: '#303030',
+          borderWidth: 1,
+          titleColor: '#f0f0f0',
+          bodyColor: '#a0a0a0',
+          padding: 10,
+          callbacks: {
+            afterBody: (items) => {
+              const idx = items[0].dataIndex;
+              const d = recent[idx];
+              return [`Cobertura: ${pct(d.analyzed, d.total)}`];
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          stacked: true,
+          grid: { color: 'rgba(255,255,255,.04)' },
+          ticks: { color: '#555', font: { size: 10, family: 'Inter' } }
+        },
+        y: {
+          stacked: true,
+          grid: { color: 'rgba(255,255,255,.04)' },
+          ticks: { color: '#555', font: { size: 10, family: 'Inter' }, stepSize: 1 }
+        }
+      }
+    }
+  });
+}
+
+// ── Table ──────────────────────────────────────────────────────────────────
+function renderTable(days) {
+  const tbody = q('#table-body');
+  tbody.innerHTML = '';
+
+  if (!days.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--text-3)">Sin datos disponibles</td></tr>';
+    return;
+  }
+
+  days.forEach(d => {
+    const covPct  = d.total > 0 ? Math.round(d.analyzed / d.total * 100) : 0;
+    const covClass = covPct >= 100 ? 'cov-full' : covPct > 0 ? 'cov-part' : 'cov-none';
+    const sanoPct = d.analyzed > 0 ? Math.round(d.sano       / d.analyzed * 100) : 0;
+    const sospPct = d.analyzed > 0 ? Math.round(d.sospechoso / d.analyzed * 100) : 0;
+    const botPct  = d.analyzed > 0 ? Math.round(d.botrytis   / d.analyzed * 100) : 0;
+
+    const tr = document.createElement('tr');
+    tr.id = 'tr-' + d.date;
+    tr.innerHTML = `
+      <td class="td-date">
+        <div style="font-weight:500">${d.label}</div>
+        <div style="font-size:11px;color:var(--text-3);margin-top:2px">${d.weekday}</div>
+      </td>
+      <td class="td-total">${d.total}</td>
+      <td>
+        <div class="bar-cell bar-sano">
+          <div class="mini-bar-wrap"><div class="mini-bar" style="width:${sanoPct}%"></div></div>
+          <span class="bar-val">${d.sano} <span style="color:var(--text-3)">(${sanoPct}%)</span></span>
+        </div>
+      </td>
+      <td>
+        <div class="bar-cell bar-sosp">
+          <div class="mini-bar-wrap"><div class="mini-bar" style="width:${sospPct}%"></div></div>
+          <span class="bar-val">${d.sospechoso} <span style="color:var(--text-3)">(${sospPct}%)</span></span>
+        </div>
+      </td>
+      <td>
+        <div class="bar-cell bar-bot">
+          <div class="mini-bar-wrap"><div class="mini-bar" style="width:${botPct}%"></div></div>
+          <span class="bar-val">${d.botrytis} <span style="color:var(--text-3)">(${botPct}%)</span></span>
+        </div>
+      </td>
+      <td>
+        <span class="coverage-pill ${covClass}">${covPct}%</span>
+      </td>
+      <td onclick="event.stopPropagation()">
+        <div class="btn-row">
+          <button class="tbl-btn" onclick="openDetail('${d.date}', '${d.label}')">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+            </svg>
+            Ver detalle
+          </button>
+          <button class="tbl-btn tbl-btn-batch" id="btn-batch-${d.date}" onclick="startBatch('${d.date}', ${d.total})" ${d.analyzed >= d.total && d.total > 0 ? 'disabled title="Todas analizadas"' : ''}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v3h3"/>
+            </svg>
+            Analizar lote
+          </button>
+        </div>
+        <div class="batch-inline" id="batch-progress-${d.date}" style="display:none">
+          <div class="batch-track-sm"><div class="batch-fill-sm" id="batch-fill-${d.date}"></div></div>
+          <span class="batch-label-sm" id="batch-lbl-${d.date}">0 / ?</span>
+          <button onclick="cancelBatch('${d.date}')" style="font-size:10px;background:none;border:none;color:var(--text-3);cursor:pointer;padding:0 2px">✕</button>
+        </div>
+      </td>`;
+    tr.querySelector('.td-date').addEventListener('click', () => openDetail(d.date, d.label));
+    tr.querySelector('.td-total').addEventListener('click', () => openDetail(d.date, d.label));
+    tbody.appendChild(tr);
+  });
+}
+
+// ── Day detail ─────────────────────────────────────────────────────────────
+async function openDetail(date, label) {
+  _expandedDay = date;
+  // highlight row
+  document.querySelectorAll('.analysis-table tbody tr').forEach(r => r.classList.remove('expanded'));
+  const tr = document.getElementById('tr-' + date);
+  if (tr) tr.classList.add('expanded');
+
+  q('#detail-title').textContent = 'Detalle: ' + label;
+  q('#detail-section').classList.add('visible');
+  q('#detail-loading').style.display = 'flex';
+  q('#detail-table').style.display   = 'none';
+
+  // scroll to detail
+  q('#detail-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+  try {
+    const photos = await fetch(`/api/photos/${date}`).then(r => r.json());
+    renderDetailTable(photos);
+  } catch {
+    q('#detail-loading').innerHTML = '<span style="color:#f87171">Error al cargar fotos del día</span>';
+  }
+}
+
+function closeDetail() {
+  _expandedDay = null;
+  q('#detail-section').classList.remove('visible');
+  document.querySelectorAll('.analysis-table tbody tr').forEach(r => r.classList.remove('expanded'));
+}
+
+let _detailPhotos = [];
+
+function renderDetailTable(photos) {
+  _detailPhotos = photos;
+  q('#detail-loading').style.display = 'none';
+  q('#detail-table').style.display   = 'table';
+  const tbody = q('#detail-body');
+  tbody.innerHTML = '';
+
+  if (!photos.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:28px;color:var(--text-3)">Sin fotos para este día</td></tr>';
+    return;
+  }
+
+  photos.forEach((p, idx) => {
+    const a = p.analysis;
+    const status  = a ? a.status : null;
+    const badge   = status
+      ? `<span class="status-badge badge-${status}">${STATUS_LABELS[status] || status}</span>`
+      : `<span class="status-badge badge-pending">Sin análisis</span>`;
+    const conf    = a ? `<span class="conf-cell conf-${a.confidence || 'baja'}">${a.confidence || '—'}</span>` : '—';
+    const resumen = a && a.resumen ? escHtml(a.resumen) : '';
+
+    const actionBtn = a
+      ? `<button class="row-action-btn btn-view" onclick="openModal(${idx})">
+           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+           </svg>Ver análisis</button>`
+      : `<button class="row-action-btn btn-analyze" onclick="openModal(${idx})">
+           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+             <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/><path d="M11 8v3h3"/>
+           </svg>Analizar</button>`;
+
+    const tr = document.createElement('tr');
+    tr.id = 'detail-row-' + idx;
+    tr.innerHTML = `
+      <td class="thumb-cell">
+        <img src="${p.thumb_url}" alt="${p.filename}" loading="lazy"
+             onerror="this.style.opacity='.2'">
+      </td>
+      <td style="font-weight:500;color:var(--text);font-size:12px">
+        ${escHtml(p.filename)}
+      </td>
+      <td style="white-space:nowrap">${p.time}</td>
+      <td id="detail-badge-${idx}">${badge}</td>
+      <td id="detail-conf-${idx}">${conf}</td>
+      <td class="resumen-cell" id="detail-resumen-${idx}" title="${resumen}">
+        ${resumen || '<span style="color:var(--text-3)">—</span>'}
+      </td>
+      <td id="detail-action-${idx}">${actionBtn}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// ── Modal ──────────────────────────────────────────────────────────────────
+let _modalIdx = null;
+
+function openModal(idx) {
+  _modalIdx = idx;
+  const p = _detailPhotos[idx];
+  if (!p) return;
+
+  // Reset modal state
+  q('#modal-filename').textContent = p.filename;
+  q('#modal-meta').textContent     = p.time + (p.size ? '  ·  ' + fmtSize(p.size) : '');
+
+  // Load image
+  const img = q('#modal-img');
+  img.style.display = 'none';
+  q('#modal-img-loading').style.display = 'flex';
+  img.src = p.url;
+
+  // Show result or pending state
+  _renderModalResult(p.analysis);
+
+  q('#modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function _renderModalResult(analysis) {
+  q('#modal-pending').style.display   = 'none';
+  q('#modal-result').style.display    = 'none';
+  q('#modal-analyzing').style.display = 'none';
+  q('#modal-btn-analyze').style.display   = 'none';
+  q('#modal-btn-reanalyze').style.display = 'none';
+
+  if (!analysis) {
+    q('#modal-pending').style.display      = 'flex';
+    q('#modal-btn-analyze').style.display  = 'inline-flex';
+    return;
+  }
+
+  const colors = { sano: '#4ade80', botrytis: '#f87171', sospechoso: '#fbbf24' };
+  q('#modal-status-text').textContent = STATUS_LABELS[analysis.status] || analysis.status || '—';
+  q('#modal-status-text').style.color = colors[analysis.status] || '#a0a0a0';
+  q('#modal-conf-tag').textContent    = 'Confianza: ' + (analysis.confidence || '—');
+
+  q('#modal-resumen').textContent = analysis.resumen || '—';
+
+  const hallEl = q('#modal-hallazgos');
+  const items  = Array.isArray(analysis.hallazgos) ? analysis.hallazgos : [];
+  hallEl.innerHTML = items.map(h => `<div class="modal-hallazgo">${escHtml(h)}</div>`).join('');
+  q('#modal-hallazgos-wrap').style.display = items.length ? 'block' : 'none';
+
+  const anoms = Array.isArray(analysis.anomalias) ? analysis.anomalias.filter(Boolean) : [];
+  q('#modal-anomalias').innerHTML = anoms.map(a => `<div class="modal-anomalia">${escHtml(a)}</div>`).join('');
+  q('#modal-anomalias-wrap').style.display = anoms.length ? 'block' : 'none';
+
+  q('#modal-descripcion').textContent = analysis.descripcion || '';
+  q('#modal-desc-wrap').style.display = analysis.descripcion ? 'block' : 'none';
+
+  q('#modal-result').style.display    = 'block';
+  q('#modal-btn-reanalyze').style.display = 'inline-flex';
+}
+
+async function runAnalysis(force = false) {
+  const p = _detailPhotos[_modalIdx];
+  if (!p) return;
+
+  q('#modal-pending').style.display   = 'none';
+  q('#modal-result').style.display    = 'none';
+  q('#modal-analyzing').style.display = 'flex';
+  q('#modal-btn-analyze').style.display   = 'none';
+  q('#modal-btn-reanalyze').style.display = 'none';
+
+  try {
+    const result = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ blob_name: p.blob_name, force }),
+    }).then(r => r.json());
+
+    // Update photo object in memory
+    _detailPhotos[_modalIdx].analysis = result;
+    p.analysis = result;
+
+    // Update the row in the table
+    _updateDetailRow(_modalIdx, result);
+
+    _renderModalResult(result);
+    toast('Análisis completado', 'success');
+  } catch (err) {
+    q('#modal-analyzing').style.display = 'none';
+    q('#modal-pending').style.display   = 'flex';
+    q('#modal-btn-analyze').style.display = 'inline-flex';
+    toast('Error al analizar con Claude', 'error');
+  }
+}
+
+function _updateDetailRow(idx, analysis) {
+  const status = analysis.status;
+  const badge  = `<span class="status-badge badge-${status}">${STATUS_LABELS[status] || status}</span>`;
+  const conf   = `<span class="conf-cell conf-${analysis.confidence || 'baja'}">${analysis.confidence || '—'}</span>`;
+  const resumen = analysis.resumen ? escHtml(analysis.resumen) : '';
+
+  const badgeEl   = document.getElementById('detail-badge-' + idx);
+  const confEl    = document.getElementById('detail-conf-' + idx);
+  const resumenEl = document.getElementById('detail-resumen-' + idx);
+  const actionEl  = document.getElementById('detail-action-' + idx);
+
+  if (badgeEl)   badgeEl.innerHTML   = badge;
+  if (confEl)    confEl.innerHTML    = conf;
+  if (resumenEl) { resumenEl.textContent = resumen; resumenEl.title = resumen; }
+  if (actionEl)  actionEl.innerHTML  =
+    `<button class="row-action-btn btn-view" onclick="openModal(${idx})">
+       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+       </svg>Ver análisis</button>`;
+}
+
+function closeModal() {
+  q('#modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+  _modalIdx = null;
+}
+
+function modalBgClick(e) {
+  if (e.target === q('#modal-overlay')) closeModal();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && q('#modal-overlay').classList.contains('open')) closeModal();
+});
+
+const STATUS_LABELS = { sano: 'Sano', botrytis: 'Botrytis', sospechoso: 'Sospechoso' };
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Batch analysis ─────────────────────────────────────────────────────────
+async function startBatch(day, total) {
+  const btn = document.getElementById('btn-batch-' + day);
+  if (btn) btn.disabled = true;
+  try {
+    const r = await fetch(`/api/analyze-batch/${day}`, { method: 'POST' }).then(r => r.json());
+    if (r.status === 'all_done') {
+      toast('Todas las fotos ya están analizadas', 'success');
+      if (btn) btn.disabled = false;
+      return;
+    }
+    toast(`Analizando ${r.total} fotos con Claude…`);
+    const prog = document.getElementById('batch-progress-' + day);
+    if (prog) prog.style.display = 'flex';
+    pollBatch(day, r.total);
+  } catch {
+    toast('Error al iniciar el análisis', 'error');
+    if (btn) btn.disabled = false;
+  }
+}
+
+function pollBatch(day, total) {
+  clearInterval(_batchTimers[day]);
+  _batchTimers[day] = setInterval(async () => {
+    try {
+      const s = await fetch(`/api/analyze-batch/${day}/status`).then(r => r.json());
+      const pctN = total > 0 ? Math.round(s.done / total * 100) : 0;
+      const fill = document.getElementById('batch-fill-' + day);
+      const lbl  = document.getElementById('batch-lbl-' + day);
+      if (fill) fill.style.width = pctN + '%';
+      if (lbl)  lbl.textContent  = `${s.done}/${total}`;
+      if (!s.running) {
+        clearInterval(_batchTimers[day]);
+        const prog = document.getElementById('batch-progress-' + day);
+        if (prog) prog.style.display = 'none';
+        toast(`Análisis completado: ${s.done} fotos`, 'success');
+        // Refresh stats and detail if open
+        await loadStats();
+        if (_expandedDay === day) {
+          const d = _statsData && _statsData.days.find(x => x.date === day);
+          if (d) openDetail(day, d.label);
+        }
+      }
+    } catch { clearInterval(_batchTimers[day]); }
+  }, 2000);
+}
+
+async function cancelBatch(day) {
+  await fetch(`/api/analyze-batch/${day}/cancel`, { method: 'POST' });
+  clearInterval(_batchTimers[day]);
+  const prog = document.getElementById('batch-progress-' + day);
+  if (prog) prog.style.display = 'none';
+  const btn = document.getElementById('btn-batch-' + day);
+  if (btn) btn.disabled = false;
+  toast('Análisis cancelado');
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+loadStats();
+</script>
+</body>
+</html>

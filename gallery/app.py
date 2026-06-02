@@ -735,6 +735,55 @@ async def analyze_batch_cancel(day: str):
     return JSONResponse({"cancelled": True})
 
 
+@app.get("/dashboard", response_class=HTMLResponse)
+async def dashboard():
+    html = (BASE_DIR / "templates" / "dashboard.html").read_text(encoding="utf-8")
+    return HTMLResponse(content=html)
+
+
+@app.get("/api/stats")
+async def get_stats():
+    blobs = _list_photo_blobs()
+    days_data: dict[str, dict] = {}
+    for blob in blobs:
+        name = blob.name.split("/")[-1]
+        day  = _parse_date(name)
+        if not day:
+            continue
+        if day not in days_data:
+            days_data[day] = {"total": 0, "analyzed": 0,
+                              "sano": 0, "sospechoso": 0, "botrytis": 0}
+        days_data[day]["total"] += 1
+        analysis = _analysis_cache.get(blob.name)
+        if analysis:
+            days_data[day]["analyzed"] += 1
+            status = analysis.get("status", "sospechoso")
+            if status in days_data[day]:
+                days_data[day][status] += 1
+
+    result = []
+    for day_str, data in sorted(days_data.items(), reverse=True):
+        label, weekday = _day_labels(day_str)
+        result.append({"date": day_str, "label": label, "weekday": weekday, **data})
+
+    total_photos    = sum(d["total"]       for d in days_data.values())
+    total_analyzed  = sum(d["analyzed"]    for d in days_data.values())
+    total_sano      = sum(d["sano"]        for d in days_data.values())
+    total_sospechoso= sum(d["sospechoso"]  for d in days_data.values())
+    total_botrytis  = sum(d["botrytis"]    for d in days_data.values())
+
+    return JSONResponse({
+        "summary": {
+            "total":        total_photos,
+            "analyzed":     total_analyzed,
+            "sano":         total_sano,
+            "sospechoso":   total_sospechoso,
+            "botrytis":     total_botrytis,
+        },
+        "days": result,
+    })
+
+
 @app.get("/download/{day}")
 async def download_day_zip(day: str):
     """Descarga todas las fotos del día como ZIP (se construye en memoria)."""

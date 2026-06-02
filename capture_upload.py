@@ -38,8 +38,9 @@ JPEG_QUALITY     = 92
 
 # ── Parámetros modo conveyor ──────────────────────────────────────────────────
 # Zona central (ROI) donde se evalúa si hay una flor: fracción del frame
-ROI_X1, ROI_Y1 = 0.25, 0.20   # esquina superior-izquierda  (25 %, 20 %)
-ROI_X2, ROI_Y2 = 0.75, 0.80   # esquina inferior-derecha    (75 %, 80 %)
+# Valores ampliados para capturar más tallo (más zona vertical inferior)
+ROI_X1, ROI_Y1 = 0.15, 0.10   # esquina superior-izquierda  (15 %, 10 %)
+ROI_X2, ROI_Y2 = 0.85, 0.95   # esquina inferior-derecha    (85 %, 95 %)
 
 MOTION_THRESHOLD  = 25         # cambio de pixel para detección de movimiento
 MOTION_MIN_AREA   = 3000       # área mínima (px²) para considerar que hay objeto
@@ -84,14 +85,16 @@ def open_camera(camera_type: str, exposure_ms: float = 0) -> cv2.VideoCapture:
         pipeline = gstreamer_pipeline(exposure_time=exposure_us)
         cap = cv2.VideoCapture(pipeline, cv2.CAP_GSTREAMER)
     else:
-        cap = cv2.VideoCapture(CAMERA_INDEX)
+        cap = cv2.VideoCapture(CAMERA_INDEX, cv2.CAP_V4L2)
         cap.set(cv2.CAP_PROP_FRAME_WIDTH,  1920)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
         cap.set(cv2.CAP_PROP_FPS, 60)
+        # Zoom mínimo → campo visual máximo (funciona en cámaras con zoom digital)
+        cap.set(cv2.CAP_PROP_ZOOM, 100)
+        cap.set(cv2.CAP_PROP_FOCUS, 0)   # autofocus off + foco al infinito
         if exposure_ms > 0:
-            # Deshabilita auto-exposición y fija valor manual
-            cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1)   # 1 = manual en V4L2
-            cap.set(cv2.CAP_PROP_EXPOSURE, -round(exposure_ms))  # log2 en algunas APIs
+            cap.set(cv2.CAP_PROP_AUTO_EXPOSURE, 1)
+            cap.set(cv2.CAP_PROP_EXPOSURE, -round(exposure_ms))
 
     if not cap.isOpened():
         raise RuntimeError(
@@ -344,6 +347,9 @@ def main():
                         help=f"[conveyor] Frames por ráfaga (default: {BURST_FRAMES})")
     parser.add_argument("--cooldown", type=float, default=COOLDOWN_SECS,
                         help=f"[conveyor] Segundos entre capturas (default: {COOLDOWN_SECS})")
+    parser.add_argument("--zoom-level", type=int, default=100,
+                        help="Zoom de la cámara (100=mínimo/más amplio, 500=máximo zoom). "
+                             "Usar 100 para capturar más tallo. Solo USB.")
     parser.add_argument("--debug", action="store_true",
                         help="[conveyor] Muestra ventana de video en vivo con ROI y métricas")
     args = parser.parse_args()
@@ -353,6 +359,7 @@ def main():
     SHARPNESS_MIN = args.sharpness_min
     BURST_FRAMES  = args.burst
     COOLDOWN_SECS = args.cooldown
+    CAMERA_ZOOM   = args.zoom_level
 
     # ── Credenciales GCS ──────────────────────────────────────────────────
     if not os.path.exists(CREDENTIALS_FILE):

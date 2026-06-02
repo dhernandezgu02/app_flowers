@@ -5,7 +5,7 @@
       "src": "gallery/app.py",
       "use": "@vercel/python",
       "config": {
-        "includeFiles": ["gallery/templates/index.html"]
+        "includeFiles": ["gallery/templates/index.html", "gallery/templates/dashboard.html"]
       }
     }
   ],
