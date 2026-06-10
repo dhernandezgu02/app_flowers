@@ -50,6 +50,8 @@ REFERENCES_DIR      = BASE_DIR / "references" / "botrytis"
 MAX_REFS_IN_PROMPT  = 3    # cuántas fotos de referencia incluir por análisis
 BATCH_DELAY_SECS    = 0.8  # pausa entre fotos en análisis en lote (rate limit)
 
+CSV_FILE = BASE_DIR.parent / "resultados_flores.csv"
+
 MONTHS_ES   = ["Ene","Feb","Mar","Abr","May","Jun","Jul",
                 "Ago","Sep","Oct","Nov","Dic"]
 WEEKDAYS_ES = ["Lunes","Martes","Miercoles","Jueves",
@@ -782,6 +784,47 @@ async def get_stats():
         },
         "days": result,
     })
+
+
+@app.get("/resultados", response_class=HTMLResponse)
+async def resultados_page():
+    html = (BASE_DIR / "templates" / "resultados.html").read_text(encoding="utf-8")
+    return HTMLResponse(content=html)
+
+
+_resultados_data: list[dict] | None = None
+
+
+def _load_resultados_csv() -> list[dict]:
+    global _resultados_data
+    if _resultados_data is not None:
+        return _resultados_data
+    if not CSV_FILE.exists():
+        return []
+    import csv as _csv
+    rows: list[dict] = []
+    with open(CSV_FILE, encoding="utf-8") as f:
+        reader = _csv.DictReader(f, delimiter=";")
+        for row in reader:
+            rows.append(dict(row))
+    _resultados_data = rows
+    return rows
+
+
+@app.get("/api/resultados")
+async def get_resultados():
+    rows = _load_resultados_csv()
+    result = []
+    for row in rows:
+        filename  = row.get("filename", "")
+        blob_name = f"{GCS_FOLDER}/{filename}" if filename else ""
+        result.append({
+            **row,
+            "blob_name": blob_name,
+            "thumb_url": f"/thumb/{blob_name}" if blob_name else "",
+            "analysis":  _analysis_cache.get(blob_name),
+        })
+    return JSONResponse(result)
 
 
 @app.get("/download/{day}")

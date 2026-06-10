@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resultados – FlowerGallery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & Variables ──────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+button { font-family: inherit; }
+
+:root {
+  --bg:          #0a0a0a;
+  --sb-bg:       #101010;
+  --surface:     #181818;
+  --surface-2:   #202020;
+  --border:      #242424;
+  --border-2:    #303030;
+  --accent:      #22c55e;
+  --accent-glow: rgba(34,197,94,.18);
+  --accent-ring: rgba(34,197,94,.28);
+  --text:        #f0f0f0;
+  --text-2:      #a0a0a0;
+  --text-3:      #555;
+  --r:           10px;
+  --sb-w:        240px;
+  --ease:        cubic-bezier(.4,0,.2,1);
+
+  --label-sana:       #22c55e;
+  --label-sana-bg:    rgba(34,197,94,.12);
+  --label-revisar:    #f59e0b;
+  --label-revisar-bg: rgba(245,158,11,.12);
+  --label-enferma:    #ef4444;
+  --label-enferma-bg: rgba(239,68,68,.12);
+  --label-sin:        #60a5fa;
+  --label-sin-bg:     rgba(96,165,250,.12);
+}
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  display: flex;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar          { width: 5px; }
+::-webkit-scrollbar-track    { background: transparent; }
+::-webkit-scrollbar-thumb    { background: #2e2e2e; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #444; }
+
+/* ── Sidebar (filtros) ──────────────────────────────────────────────────── */
+.sidebar {
+  width: var(--sb-w);
+  min-width: var(--sb-w);
+  background: var(--sb-bg);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.sb-head {
+  padding: 22px 18px 14px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.logo { display: flex; align-items: center; gap: 11px; }
+.logo-icon {
+  width: 36px; height: 36px;
+  background: var(--accent-glow);
+  border: 1px solid var(--accent-ring);
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.logo-name { font-size: 16px; font-weight: 600; letter-spacing: -.3px; }
+
+.sb-nav {
+  display: flex; gap: 2px; margin-top: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: 8px; padding: 3px;
+}
+.sb-nav-tab {
+  flex: 1; text-align: center;
+  padding: 5px 4px; border-radius: 6px;
+  font-size: 10.5px; font-weight: 500;
+  color: var(--text-3); text-decoration: none;
+  transition: all 120ms var(--ease); white-space: nowrap;
+}
+.sb-nav-tab:hover { color: var(--text); background: var(--surface-2); }
+.sb-nav-tab.active { background: var(--accent-glow); color: var(--accent); border: 1px solid var(--accent-ring); }
+
+/* Filtros */
+.sb-filters {
+  flex: 1; overflow-y: auto;
+  padding: 12px 12px 16px;
+  display: flex; flex-direction: column; gap: 18px;
+}
+
+.filter-section {}
+.filter-title {
+  font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .7px;
+  color: var(--text-3); margin-bottom: 7px;
+}
+
+.filter-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+
+.chip {
+  padding: 4px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 500; cursor: pointer;
+  border: 1px solid var(--border-2);
+  background: var(--surface); color: var(--text-2);
+  transition: all 120ms var(--ease);
+  white-space: nowrap;
+}
+.chip:hover { background: var(--surface-2); color: var(--text); }
+.chip.active-all   { background: rgba(255,255,255,.06); border-color: #3a3a3a; color: var(--text); }
+.chip.active-sana  { background: var(--label-sana-bg); border-color: rgba(34,197,94,.3); color: var(--label-sana); }
+.chip.active-revisar { background: var(--label-revisar-bg); border-color: rgba(245,158,11,.3); color: var(--label-revisar); }
+.chip.active-enferma { background: var(--label-enferma-bg); border-color: rgba(239,68,68,.3); color: var(--label-enferma); }
+.chip.active-sin_flores { background: var(--label-sin-bg); border-color: rgba(96,165,250,.3); color: var(--label-sin); }
+.chip.active-sev   { background: rgba(255,255,255,.06); border-color: #3a3a3a; color: var(--text); }
+.chip.active-eje   { background: rgba(139,92,246,.12); border-color: rgba(139,92,246,.3); color: #a78bfa; }
+
+.filter-search {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: 7px;
+  padding: 7px 10px;
+  font-size: 12px; color: var(--text);
+  outline: none; font-family: inherit;
+  transition: border-color 150ms;
+}
+.filter-search::placeholder { color: var(--text-3); }
+.filter-search:focus { border-color: var(--accent-ring); }
+
+/* Stats en sidebar */
+.sb-result-stats {
+  padding: 10px 12px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+  font-size: 11.5px; color: var(--text-3);
+  display: flex; flex-direction: column; gap: 3px;
+}
+.sb-result-count { font-size: 18px; font-weight: 600; color: var(--text); }
+
+/* ── Main ───────────────────────────────────────────────────────────────── */
+.main {
+  flex: 1;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+
+.main-head {
+  padding: 18px 28px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 16px;
+  flex-shrink: 0;
+}
+.main-title    { font-size: 17px; font-weight: 600; letter-spacing: -.3px; }
+.main-subtitle { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+
+/* Stats strip */
+.stats-strip {
+  padding: 10px 28px;
+  border-bottom: 1px solid var(--border);
+  display: flex; gap: 24px; flex-shrink: 0;
+  background: var(--sb-bg);
+}
+.stat-pill {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px;
+}
+.stat-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.stat-pill-val { font-weight: 600; }
+.stat-pill-lbl { color: var(--text-3); }
+
+/* Table */
+.table-wrap {
+  flex: 1; overflow-y: auto; padding: 0;
+}
+
+table {
+  width: 100%; border-collapse: collapse;
+  font-size: 12.5px;
+}
+thead th {
+  position: sticky; top: 0; z-index: 2;
+  background: var(--surface);
+  padding: 9px 14px;
+  text-align: left;
+  font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .6px;
+  color: var(--text-3);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  cursor: pointer; user-select: none;
+}
+thead th:hover { color: var(--text-2); }
+thead th.sorted { color: var(--accent); }
+
+tbody tr {
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 80ms var(--ease);
+}
+tbody tr:hover { background: var(--surface); }
+tbody tr.selected { background: rgba(34,197,94,.06); }
+
+td {
+  padding: 9px 14px;
+  vertical-align: middle;
+}
+
+td.td-thumb {
+  width: 68px; padding: 6px 8px 6px 14px;
+}
+.thumb-img {
+  width: 58px; height: 44px;
+  object-fit: cover; border-radius: 5px;
+  background: var(--surface-2);
+  display: block;
+}
+
+.td-filename {
+  max-width: 200px; overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap;
+  font-size: 11.5px; color: var(--text-2);
+}
+
+.label-badge {
+  display: inline-block;
+  padding: 2px 9px; border-radius: 20px;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: .4px; text-transform: uppercase;
+  white-space: nowrap;
+}
+.lbadge-sana       { background: var(--label-sana-bg); color: var(--label-sana); border: 1px solid rgba(34,197,94,.25); }
+.lbadge-revisar    { background: var(--label-revisar-bg); color: var(--label-revisar); border: 1px solid rgba(245,158,11,.25); }
+.lbadge-enferma    { background: var(--label-enferma-bg); color: var(--label-enferma); border: 1px solid rgba(239,68,68,.25); }
+.lbadge-sin_flores { background: var(--label-sin-bg); color: var(--label-sin); border: 1px solid rgba(96,165,250,.25); }
+
+.score-bar-wrap { display: flex; align-items: center; gap: 6px; min-width: 90px; }
+.score-bar-bg {
+  flex: 1; height: 4px; background: var(--border-2); border-radius: 2px; overflow: hidden;
+}
+.score-bar-fill { height: 100%; border-radius: 2px; transition: width .3s; }
+.score-val { font-size: 10.5px; color: var(--text-2); white-space: nowrap; min-width: 30px; }
+
+.eje-badge {
+  display: inline-block;
+  padding: 2px 8px; border-radius: 5px;
+  font-size: 10.5px; font-weight: 500;
+  background: rgba(139,92,246,.1); color: #a78bfa;
+  border: 1px solid rgba(139,92,246,.2);
+  white-space: nowrap;
+}
+
+.td-action {
+  width: 36px; text-align: center;
+}
+.row-btn {
+  width: 26px; height: 26px; border-radius: 6px;
+  background: var(--surface-2); border: 1px solid var(--border-2);
+  color: var(--text-3); cursor: pointer; font-size: 12px;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: all 120ms;
+}
+.row-btn:hover { background: var(--surface); color: var(--text); border-color: #3a3a3a; }
+
+.claude-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #a78bfa; display: inline-block; margin-right: 4px;
+}
+
+/* ── Pagination ─────────────────────────────────────────────────────────── */
+.pagination {
+  padding: 10px 28px;
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+  flex-shrink: 0; background: var(--sb-bg);
+}
+.pg-btn {
+  padding: 4px 12px; border-radius: 6px;
+  font-size: 11.5px; font-weight: 500;
+  background: var(--surface); border: 1px solid var(--border-2);
+  color: var(--text-2); cursor: pointer;
+  transition: all 120ms;
+}
+.pg-btn:hover:not(:disabled) { background: var(--surface-2); color: var(--text); }
+.pg-btn:disabled { opacity: .35; cursor: default; }
+.pg-info { font-size: 11.5px; color: var(--text-3); flex: 1; text-align: center; }
+
+/* Loading / empty */
+.table-msg {
+  padding: 60px 28px;
+  text-align: center; color: var(--text-3); font-size: 13px;
+}
+.spinner {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.08);
+  border-top-color: var(--accent);
+  animation: spin .65s linear infinite;
+  margin: 0 auto 12px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Detail Modal ───────────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 9000;
+  background: rgba(0,0,0,.88);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 180ms var(--ease);
+  padding: 16px;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: 14px;
+  width: 100%; max-width: 960px;
+  max-height: calc(100vh - 32px);
+  display: flex; flex-direction: column;
+  box-shadow: 0 24px 60px rgba(0,0,0,.7);
+  overflow: hidden;
+}
+
+.modal-head {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+  flex-shrink: 0;
+}
+.modal-head-name { font-size: 13px; font-weight: 600; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.modal-close {
+  width: 28px; height: 28px; border-radius: 6px;
+  background: transparent; border: none;
+  color: var(--text-3); cursor: pointer; font-size: 18px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 120ms;
+}
+.modal-close:hover { background: var(--surface-2); color: var(--text); }
+
+.modal-body {
+  display: flex; flex: 1; overflow: hidden; min-height: 0;
+}
+
+/* Imagen */
+.modal-img-side {
+  width: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: #0d0d0d;
+  border-right: 1px solid var(--border);
+  padding: 16px;
+  position: relative;
+}
+.modal-img {
+  max-width: 100%; max-height: 100%;
+  object-fit: contain; border-radius: 8px;
+  display: none;
+}
+.modal-img-spin {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* Info */
+.modal-info-side {
+  flex: 1; overflow-y: auto;
+  padding: 16px 20px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+
+.info-section {}
+.info-section-title {
+  font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .7px;
+  color: var(--text-3); margin-bottom: 8px;
+}
+
+.info-badges { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+
+.sev-badge {
+  display: inline-block;
+  padding: 2px 9px; border-radius: 20px;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: .3px; text-transform: uppercase;
+}
+.sbadge-baseline  { background: rgba(255,255,255,.07); color: var(--text-2); border: 1px solid #333; }
+.sbadge-moderada  { background: rgba(245,158,11,.12); color: #f59e0b; border: 1px solid rgba(245,158,11,.25); }
+.sbadge-severa    { background: rgba(239,68,68,.12); color: #ef4444; border: 1px solid rgba(239,68,68,.25); }
+
+.cluster-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 9px; border-radius: 20px;
+  font-size: 10px; color: var(--text-3);
+  background: var(--surface-2); border: 1px solid var(--border-2);
+}
+
+/* Score row */
+.score-row {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 4px;
+}
+.score-row-label { font-size: 11.5px; color: var(--text-2); width: 110px; flex-shrink: 0; }
+.score-row-bar { flex: 1; height: 5px; background: var(--border-2); border-radius: 3px; overflow: hidden; }
+.score-row-fill { height: 100%; border-radius: 3px; }
+.score-row-val { font-size: 11px; color: var(--text-2); width: 38px; text-align: right; flex-shrink: 0; }
+
+/* Metrics grid */
+.metrics-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+}
+.metric-item {
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: 7px; padding: 7px 10px;
+}
+.metric-lbl { font-size: 10px; color: var(--text-3); margin-bottom: 2px; }
+.metric-val { font-size: 13px; font-weight: 600; }
+
+/* Eje + motivo */
+.eje-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.motivo-badge {
+  padding: 2px 8px; border-radius: 5px;
+  font-size: 10.5px;
+  background: rgba(255,255,255,.05); color: var(--text-2);
+  border: 1px solid var(--border-2);
+}
+
+/* ── Claude Vision panel ────────────────────────────────────────────────── */
+.modal-claude {
+  border-top: 1px solid var(--border);
+  padding: 14px 20px;
+  flex-shrink: 0;
+  background: var(--sb-bg);
+}
+
+.claude-actions { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+
+.btn-claude {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 8px 16px; border-radius: 8px;
+  font-size: 12.5px; font-weight: 600;
+  background: rgba(139,92,246,.15);
+  border: 1px solid rgba(139,92,246,.35);
+  color: #c4b5fd; cursor: pointer;
+  transition: all 120ms var(--ease);
+}
+.btn-claude:hover { background: rgba(139,92,246,.25); color: #ddd6fe; }
+.btn-claude:disabled { opacity: .5; cursor: default; }
+
+.btn-reanalyze {
+  padding: 6px 12px; border-radius: 7px;
+  font-size: 11.5px;
+  background: var(--surface); border: 1px solid var(--border-2);
+  color: var(--text-3); cursor: pointer;
+  transition: all 120ms;
+}
+.btn-reanalyze:hover { color: var(--text); border-color: #3a3a3a; }
+.btn-reanalyze:disabled { opacity: .4; cursor: default; }
+
+.claude-analyzing {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: var(--text-3);
+}
+.claude-analyzing .spinner { width: 14px; height: 14px; border-width: 2px; margin: 0; }
+
+.claude-result {
+  background: var(--surface);
+  border: 1px solid var(--border-2);
+  border-radius: 10px; padding: 14px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+
+.claude-result-head {
+  display: flex; align-items: center; gap: 8px;
+}
+.claude-status-badge {
+  padding: 3px 11px; border-radius: 20px;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: .4px; text-transform: uppercase;
+}
+.cstatus-sano       { background: rgba(34,197,94,.15); color: #4ade80; border: 1px solid rgba(34,197,94,.3); }
+.cstatus-botrytis   { background: rgba(239,68,68,.15); color: #f87171; border: 1px solid rgba(239,68,68,.3); }
+.cstatus-sospechoso { background: rgba(245,158,11,.15); color: #fbbf24; border: 1px solid rgba(245,158,11,.3); }
+.cstatus-error      { background: rgba(239,68,68,.10); color: #f87171; border: 1px solid rgba(239,68,68,.2); }
+
+.claude-conf { font-size: 11px; color: var(--text-3); }
+
+.claude-resumen {
+  font-size: 12px; color: var(--text-2); line-height: 1.55;
+  padding: 8px 10px; background: rgba(255,255,255,.03);
+  border-radius: 6px; border: 1px solid var(--border);
+}
+
+.claude-hallazgos { display: flex; flex-direction: column; gap: 3px; }
+.claude-hallazgo {
+  font-size: 11.5px; color: var(--text-2); line-height: 1.4;
+  padding-left: 12px; position: relative;
+}
+.claude-hallazgo::before { content:'·'; position:absolute; left:2px; color:var(--text-3); }
+
+.claude-anomalias { display: flex; flex-direction: column; gap: 3px; }
+.claude-anomalia {
+  font-size: 11.5px; color: #fbbf24; line-height: 1.4;
+  padding-left: 14px; position: relative;
+}
+.claude-anomalia::before { content:'⚠'; position:absolute; left:0; font-size:9px; top:2px; }
+
+.claude-descripcion {
+  font-size: 11.5px; color: var(--text-2); line-height: 1.6;
+  padding: 8px 10px; background: rgba(255,255,255,.02);
+  border-radius: 6px; border: 1px solid var(--border);
+  display: none;
+}
+.claude-descripcion.show { display: block; }
+
+.toggle-desc {
+  font-size: 11px; padding: 3px 10px; border-radius: 5px;
+  background: transparent; border: 1px solid var(--border-2);
+  color: var(--text-3); cursor: pointer; align-self: flex-start;
+  transition: all 120ms;
+}
+.toggle-desc:hover { color: var(--text); border-color: #3a3a3a; }
+
+/* ── Toast ──────────────────────────────────────────────────────────────── */
+.toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 99999;
+  background: var(--surface-2);
+  border: 1px solid var(--border-2);
+  padding: 11px 18px; border-radius: 10px;
+  font-size: 13px; color: var(--text-2);
+  box-shadow: 0 8px 28px rgba(0,0,0,.45);
+  transform: translateY(16px); opacity: 0;
+  transition: all 280ms var(--ease);
+  max-width: 320px; pointer-events: none;
+}
+.toast.show   { transform: translateY(0); opacity: 1; }
+.toast.ok     { border-color: rgba(34,197,94,.35); color: var(--accent); }
+.toast.err    { border-color: rgba(239,68,68,.35); color: #f87171; }
+</style>
+</head>
+<body>
+
+<!-- ── Sidebar filtros ──────────────────────────────────────────────────── -->
+<aside class="sidebar">
+  <div class="sb-head">
+    <div class="logo">
+      <div class="logo-icon">🌸</div>
+      <div class="logo-name">FlowerGallery</div>
+    </div>
+    <div class="sb-nav">
+      <a href="/"          class="sb-nav-tab">Galería</a>
+      <a href="/dashboard" class="sb-nav-tab">Dashboard</a>
+      <a href="/resultados" class="sb-nav-tab active">Resultados</a>
+    </div>
+  </div>
+
+  <div class="sb-filters">
+    <!-- Búsqueda -->
+    <div class="filter-section">
+      <div class="filter-title">Buscar</div>
+      <input class="filter-search" id="f-search" type="text"
+             placeholder="Nombre de archivo…" oninput="applyFilters()">
+    </div>
+
+    <!-- Etiqueta -->
+    <div class="filter-section">
+      <div class="filter-title">Etiqueta</div>
+      <div class="filter-chips" id="chips-label">
+        <span class="chip active-all" data-val="all" onclick="toggleChip('label','all',this)">Todas</span>
+        <span class="chip" data-val="sana"       onclick="toggleChip('label','sana',this)">Sana</span>
+        <span class="chip" data-val="revisar"    onclick="toggleChip('label','revisar',this)">Revisar</span>
+        <span class="chip" data-val="enferma"    onclick="toggleChip('label','enferma',this)">Enferma</span>
+        <span class="chip" data-val="sin_flores" onclick="toggleChip('label','sin_flores',this)">Sin flores</span>
+      </div>
+    </div>
+
+    <!-- Severidad -->
+    <div class="filter-section">
+      <div class="filter-title">Severidad Botrytis</div>
+      <div class="filter-chips" id="chips-sev">
+        <span class="chip active-all" data-val="all" onclick="toggleChip('sev','all',this)">Todas</span>
+        <span class="chip" data-val="baseline" onclick="toggleChip('sev','baseline',this)">Baseline</span>
+        <span class="chip" data-val="moderada" onclick="toggleChip('sev','moderada',this)">Moderada</span>
+        <span class="chip" data-val="severa"   onclick="toggleChip('sev','severa',this)">Severa</span>
+      </div>
+    </div>
+
+    <!-- Eje dominante -->
+    <div class="filter-section">
+      <div class="filter-title">Eje dominante</div>
+      <div class="filter-chips" id="chips-eje">
+        <span class="chip active-all" data-val="all" onclick="toggleChip('eje','all',this)">Todos</span>
+        <span class="chip" data-val="tallos_rotos"  onclick="toggleChip('eje','tallos_rotos',this)">Tallos rotos</span>
+        <span class="chip" data-val="tallo_amarillo" onclick="toggleChip('eje','tallo_amarillo',this)">Tallo amarillo</span>
+        <span class="chip" data-val="follaje_blanco" onclick="toggleChip('eje','follaje_blanco',this)">Follaje blanco</span>
+        <span class="chip" data-val="botrytis"      onclick="toggleChip('eje','botrytis',this)">Botrytis</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="sb-result-stats">
+    <span class="sb-result-count" id="sb-count">—</span>
+    <span>resultados</span>
+  </div>
+</aside>
+
+<!-- ── Main ────────────────────────────────────────────────────────────── -->
+<main class="main">
+  <div class="main-head">
+    <div>
+      <div class="main-title">Resultados de análisis</div>
+      <div class="main-subtitle" id="main-sub">Cargando datos del CSV…</div>
+    </div>
+  </div>
+
+  <div class="stats-strip" id="stats-strip" style="display:none">
+    <div class="stat-pill">
+      <span class="stat-dot" style="background:var(--label-sana)"></span>
+      <span class="stat-pill-val" id="st-sana">0</span>
+      <span class="stat-pill-lbl">Sana</span>
+    </div>
+    <div class="stat-pill">
+      <span class="stat-dot" style="background:var(--label-revisar)"></span>
+      <span class="stat-pill-val" id="st-revisar">0</span>
+      <span class="stat-pill-lbl">Revisar</span>
+    </div>
+    <div class="stat-pill">
+      <span class="stat-dot" style="background:var(--label-enferma)"></span>
+      <span class="stat-pill-val" id="st-enferma">0</span>
+      <span class="stat-pill-lbl">Enferma</span>
+    </div>
+    <div class="stat-pill">
+      <span class="stat-dot" style="background:var(--label-sin)"></span>
+      <span class="stat-pill-val" id="st-sin">0</span>
+      <span class="stat-pill-lbl">Sin flores</span>
+    </div>
+    <div class="stat-pill" style="margin-left:auto">
+      <span class="stat-dot" style="background:#a78bfa"></span>
+      <span class="stat-pill-val" id="st-analyzed">0</span>
+      <span class="stat-pill-lbl">Con análisis Claude</span>
+    </div>
+  </div>
+
+  <div class="table-wrap" id="table-wrap">
+    <div class="table-msg">
+      <div class="spinner"></div>
+      Cargando resultados…
+    </div>
+  </div>
+
+  <div class="pagination" id="pagination" style="display:none">
+    <button class="pg-btn" id="pg-prev" onclick="goPage(-1)">← Anterior</button>
+    <span class="pg-info" id="pg-info"></span>
+    <button class="pg-btn" id="pg-next" onclick="goPage(1)">Siguiente →</button>
+  </div>
+</main>
+
+<!-- ── Detail Modal ──────────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="modal-overlay" onclick="modalBgClick(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <div class="modal-head-name" id="m-filename"></div>
+      <div id="m-head-badges" style="display:flex;gap:6px;flex-shrink:0"></div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Imagen -->
+      <div class="modal-img-side">
+        <div class="modal-img-spin" id="m-spin"><div class="spinner"></div></div>
+        <img class="modal-img" id="m-img" alt="" onload="imgLoaded()" onerror="imgError()">
+      </div>
+
+      <!-- Info -->
+      <div class="modal-info-side">
+
+        <!-- Clasificación -->
+        <div class="info-section">
+          <div class="info-section-title">Clasificación</div>
+          <div class="info-badges" id="m-badges"></div>
+        </div>
+
+        <!-- sick_score -->
+        <div class="info-section">
+          <div class="info-section-title">Sick Score</div>
+          <div class="score-row">
+            <span class="score-row-label">sick_score</span>
+            <div class="score-row-bar"><div class="score-row-fill" id="m-sick-fill"></div></div>
+            <span class="score-row-val" id="m-sick-val"></span>
+          </div>
+        </div>
+
+        <!-- Eje dominante -->
+        <div class="info-section">
+          <div class="info-section-title">Eje dominante</div>
+          <div class="eje-row" id="m-eje-row"></div>
+        </div>
+
+        <!-- Scores de eje -->
+        <div class="info-section">
+          <div class="info-section-title">Puntuaciones de eje</div>
+          <div id="m-axis-scores"></div>
+        </div>
+
+        <!-- Métricas -->
+        <div class="info-section">
+          <div class="info-section-title">Métricas detalladas</div>
+          <div class="metrics-grid" id="m-metrics"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Claude Vision -->
+    <div class="modal-claude">
+      <div class="claude-actions" id="m-claude-actions">
+        <button class="btn-claude" id="m-btn-analyze" onclick="analyzeModal()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          </svg>
+          Analizar con Claude Vision
+        </button>
+        <button class="btn-reanalyze" id="m-btn-reanalyze" style="display:none" onclick="analyzeModal(true)">
+          Volver a analizar
+        </button>
+        <span class="claude-analyzing" id="m-analyzing" style="display:none">
+          <div class="spinner"></div> Analizando imagen…
+        </span>
+      </div>
+      <div id="m-claude-result" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toast ────────────────────────────────────────────────────────────── -->
+<div class="toast" id="toast"></div>
+
+<script>
+const q = s => document.querySelector(s);
+
+// ── State ──────────────────────────────────────────────────────────────────
+let allRows      = [];
+let filtered     = [];
+let curPage      = 1;
+const PER_PAGE   = 50;
+let sortCol      = 'sick_score';
+let sortDir      = -1; // -1 = desc
+let filterLabel  = 'all';
+let filterSev    = 'all';
+let filterEje    = 'all';
+let modalRow     = null;
+let toastTimer   = null;
+
+// ── Boot ───────────────────────────────────────────────────────────────────
+(async () => {
+  try {
+    allRows = await fetch('/api/resultados').then(r => r.json());
+    buildStats(allRows);
+    q('#stats-strip').style.display = 'flex';
+    applyFilters();
+    q('#main-sub').textContent = `${allRows.length} registros cargados del CSV`;
+  } catch(e) {
+    q('#table-wrap').innerHTML = '<div class="table-msg">Error al cargar los datos del CSV</div>';
+    toast('No se pudo cargar el CSV', 'err');
+  }
+})();
+
+// ── Stats strip ────────────────────────────────────────────────────────────
+function buildStats(rows) {
+  const cnt = {sana:0, revisar:0, enferma:0, sin_flores:0, analyzed:0};
+  rows.forEach(r => {
+    if (cnt[r.label] !== undefined) cnt[r.label]++;
+    if (r.analysis) cnt.analyzed++;
+  });
+  q('#st-sana').textContent     = cnt.sana;
+  q('#st-revisar').textContent  = cnt.revisar;
+  q('#st-enferma').textContent  = cnt.enferma;
+  q('#st-sin').textContent      = cnt.sin_flores;
+  q('#st-analyzed').textContent = cnt.analyzed;
+}
+
+// ── Filters ────────────────────────────────────────────────────────────────
+function toggleChip(group, val, el) {
+  const container = { label: '#chips-label', sev: '#chips-sev', eje: '#chips-eje' }[group];
+  document.querySelectorAll(`${container} .chip`).forEach(c => {
+    const cv = c.dataset.val;
+    c.className = 'chip';
+    if (c === el) {
+      if (group === 'label')    c.className += ` active-${val}`;
+      else if (val !== 'all')   c.className += ` active-${group === 'sev' ? 'sev' : 'eje'}`;
+      else                      c.className += ' active-all';
+    }
+  });
+  if (group === 'label') filterLabel = val;
+  if (group === 'sev')   filterSev   = val;
+  if (group === 'eje')   filterEje   = val;
+  applyFilters();
+}
+
+function applyFilters() {
+  const search = q('#f-search').value.trim().toLowerCase();
+  filtered = allRows.filter(r => {
+    if (filterLabel !== 'all' && r.label !== filterLabel) return false;
+    if (filterSev   !== 'all' && r.botrytis_severity !== filterSev) return false;
+    if (filterEje   !== 'all' && r.eje_dominante !== filterEje) return false;
+    if (search && !r.filename.toLowerCase().includes(search)) return false;
+    return true;
+  });
+  // Sort
+  filtered.sort((a, b) => {
+    const va = parseNum(a[sortCol]);
+    const vb = parseNum(b[sortCol]);
+    if (va === null && vb === null) return 0;
+    if (va === null) return 1;
+    if (vb === null) return -1;
+    return sortDir * (va - vb);
+  });
+  curPage = 1;
+  q('#sb-count').textContent = filtered.length;
+  renderTable();
+}
+
+function parseNum(v) {
+  if (v === null || v === undefined || v === '') return null;
+  const n = parseFloat(String(v).replace(',', '.'));
+  return isNaN(n) ? null : n;
+}
+
+// ── Sort ───────────────────────────────────────────────────────────────────
+function sortBy(col) {
+  if (sortCol === col) sortDir = -sortDir;
+  else { sortCol = col; sortDir = -1; }
+  applyFilters();
+  // update header UI
+  document.querySelectorAll('thead th').forEach(th => th.classList.remove('sorted'));
+  const th = document.querySelector(`thead th[data-col="${col}"]`);
+  if (th) th.classList.add('sorted');
+}
+
+// ── Table render ───────────────────────────────────────────────────────────
+function renderTable() {
+  const wrap = q('#table-wrap');
+  if (!filtered.length) {
+    wrap.innerHTML = '<div class="table-msg">No hay registros que coincidan con los filtros</div>';
+    q('#pagination').style.display = 'none';
+    return;
+  }
+
+  const totalPages = Math.ceil(filtered.length / PER_PAGE);
+  if (curPage > totalPages) curPage = totalPages;
+  const start = (curPage - 1) * PER_PAGE;
+  const page  = filtered.slice(start, start + PER_PAGE);
+
+  const cols = [
+    { key:'filename',          label:'Archivo',      sortable:false },
+    { key:'label',             label:'Etiqueta',     sortable:true  },
+    { key:'sick_score',        label:'Sick score',   sortable:true  },
+    { key:'botrytis_severity', label:'Severidad',    sortable:false },
+    { key:'eje_dominante',     label:'Eje dominante',sortable:true  },
+    { key:'clip_sick_prob',    label:'CLIP sick',    sortable:true  },
+    { key:'',                  label:'',             sortable:false },
+  ];
+
+  let html = `<table><thead><tr>
+    <th style="width:68px"></th>`;
+  cols.forEach(c => {
+    if (c.sortable) {
+      const isSorted = sortCol === c.key;
+      html += `<th data-col="${c.key}" class="${isSorted?'sorted':''}" onclick="sortBy('${c.key}')">${c.label} ${isSorted?(sortDir>0?'↑':'↓'):''}</th>`;
+    } else {
+      html += `<th>${c.label}</th>`;
+    }
+  });
+  html += '</tr></thead><tbody>';
+
+  page.forEach(row => {
+    const score = parseNum(row.sick_score);
+    const scoreColor = scoreToColor(score);
+    const clipProb = parseNum(row.clip_sick_prob);
+    const hasAnalysis = !!row.analysis;
+
+    html += `<tr onclick="openModal('${escHtml(row.filename)}')">
+      <td class="td-thumb">
+        <img class="thumb-img" src="${escHtml(row.thumb_url)}" loading="lazy"
+             onerror="this.style.opacity='.15'" alt="">
+      </td>
+      <td class="td-filename" title="${escHtml(row.filename)}">
+        ${hasAnalysis ? '<span class="claude-dot"></span>' : ''}${escHtml(row.filename)}
+      </td>
+      <td><span class="label-badge lbadge-${escHtml(row.label)}">${labelText(row.label)}</span></td>
+      <td>
+        <div class="score-bar-wrap">
+          <div class="score-bar-bg">
+            <div class="score-bar-fill" style="width:${score!=null?Math.round(score*100):0}%;background:${scoreColor}"></div>
+          </div>
+          <span class="score-val">${score!=null?score.toFixed(3):'—'}</span>
+        </div>
+      </td>
+      <td><span class="sev-badge sbadge-${escHtml(row.botrytis_severity)}">${row.botrytis_severity}</span></td>
+      <td><span class="eje-badge">${ejeLbl(row.eje_dominante)}</span></td>
+      <td style="font-size:11px;color:var(--text-3)">${clipProb!=null?clipProb.toFixed(4):'—'}</td>
+      <td class="td-action">
+        <button class="row-btn" title="Ver detalle" onclick="event.stopPropagation();openModal('${escHtml(row.filename)}')">›</button>
+      </td>
+    </tr>`;
+  });
+
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+
+  // Pagination
+  q('#pagination').style.display = 'flex';
+  q('#pg-prev').disabled = curPage === 1;
+  q('#pg-next').disabled = curPage === totalPages;
+  q('#pg-info').textContent =
+    `${start+1}–${Math.min(start+PER_PAGE, filtered.length)} de ${filtered.length}`;
+}
+
+function goPage(dir) {
+  curPage += dir;
+  renderTable();
+  q('#table-wrap').scrollTop = 0;
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function scoreToColor(s) {
+  if (s === null) return '#555';
+  const r = Math.round(255 * Math.min(s * 2, 1));
+  const g = Math.round(255 * Math.min((1 - s) * 2, 1));
+  return `rgb(${r},${g},40)`;
+}
+
+function labelText(l) {
+  return {sana:'Sana', revisar:'Revisar', enferma:'Enferma', sin_flores:'Sin flores'}[l] || l;
+}
+
+function ejeLbl(e) {
+  return {tallos_rotos:'Tallos rotos', tallo_amarillo:'Tallo amarillo',
+          follaje_blanco:'Follaje blanco', botrytis:'Botrytis'}[e] || e;
+}
+
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Modal ──────────────────────────────────────────────────────────────────
+function openModal(filename) {
+  const row = allRows.find(r => r.filename === filename);
+  if (!row) return;
+  modalRow = row;
+
+  q('#m-filename').textContent = filename;
+
+  // Head badges
+  const headBadges = q('#m-head-badges');
+  headBadges.innerHTML =
+    `<span class="label-badge lbadge-${row.label}">${labelText(row.label)}</span>
+     <span class="sev-badge sbadge-${row.botrytis_severity}">${row.botrytis_severity}</span>`;
+
+  // Badges section
+  const badgesEl = q('#m-badges');
+  badgesEl.innerHTML =
+    `<span class="label-badge lbadge-${row.label}">${labelText(row.label)}</span>
+     <span class="sev-badge sbadge-${row.botrytis_severity}">${row.botrytis_severity}</span>
+     <span class="cluster-badge">Cluster ${row.cluster}</span>`;
+
+  // sick_score
+  const score = parseNum(row.sick_score);
+  if (score !== null) {
+    const pct   = Math.round(score * 100);
+    q('#m-sick-fill').style.width      = pct + '%';
+    q('#m-sick-fill').style.background = scoreToColor(score);
+    q('#m-sick-val').textContent        = score.toFixed(4);
+  }
+
+  // Eje dominante + motivo
+  q('#m-eje-row').innerHTML =
+    `<span class="eje-badge" style="font-size:12px">${ejeLbl(row.eje_dominante)}</span>
+     <span class="motivo-badge">${row.motivo_principal}</span>`;
+
+  // Axis scores
+  const axes = [
+    { key:'axis_score_botrytis',       label:'Botrytis',       color:'#f87171' },
+    { key:'axis_score_tallo_amarillo', label:'Tallo amarillo', color:'#fbbf24' },
+    { key:'axis_score_follaje_blanco', label:'Follaje blanco', color:'#60a5fa' },
+    { key:'axis_score_tallos_rotos',   label:'Tallos rotos',   color:'#a78bfa' },
+  ];
+  q('#m-axis-scores').innerHTML = axes.map(ax => {
+    const v = parseNum(row[ax.key]);
+    const pct = v !== null ? Math.min(Math.round(v * 100), 100) : 0;
+    return `<div class="score-row">
+      <span class="score-row-label">${ax.label}</span>
+      <div class="score-row-bar">
+        <div class="score-row-fill" style="width:${pct}%;background:${ax.color}"></div>
+      </div>
+      <span class="score-row-val">${v !== null ? v.toFixed(3) : '—'}</span>
+    </div>`;
+  }).join('');
+
+  // Metrics
+  const metrics = [
+    { key:'pct_yellow_in_stem', label:'% amarillo tallo' },
+    { key:'gray_mold_score',    label:'Gray mold score'  },
+    { key:'whiteness_score',    label:'Whiteness score'  },
+    { key:'cosine_sim_bad',     label:'Cosine sim bad'   },
+    { key:'clip_sick_prob',     label:'CLIP sick prob'   },
+    { key:'stem_fragmentation', label:'Stem fragm.'      },
+    { key:'p_con_flores',       label:'P(con flores)'    },
+    { key:'p_sin_flores',       label:'P(sin flores)'    },
+  ];
+  q('#m-metrics').innerHTML = metrics.map(m => {
+    const v = parseNum(row[m.key]);
+    let display = '—';
+    if (v !== null) {
+      display = (m.key.startsWith('p_') || m.key.includes('pct_'))
+        ? (v * 100).toFixed(2) + '%'
+        : v.toFixed(4);
+    }
+    const isHigh = v !== null && (
+      (m.key === 'clip_sick_prob' && v > 0.05) ||
+      (m.key === 'cosine_sim_bad' && v > 0.8)  ||
+      (m.key === 'gray_mold_score' && v > 0.2)
+    );
+    return `<div class="metric-item">
+      <div class="metric-lbl">${m.label}</div>
+      <div class="metric-val" style="${isHigh?'color:#f87171':''}">${display}</div>
+    </div>`;
+  }).join('');
+
+  // Imagen
+  const img = q('#m-img');
+  img.style.display = 'none';
+  q('#m-spin').style.display = 'flex';
+  img.src = row.thumb_url;
+
+  // Claude result
+  resetClaudePanel(row);
+
+  q('#modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  q('#modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+  modalRow = null;
+}
+
+function modalBgClick(e) {
+  if (e.target === q('#modal-overlay')) closeModal();
+}
+
+function imgLoaded() {
+  const img = q('#m-img');
+  // Cargar versión completa si tenemos blob_name
+  if (modalRow) {
+    const fullUrl = `/download/photo/${modalRow.blob_name}`;
+    const tmp = new Image();
+    tmp.onload = () => {
+      img.src = fullUrl;
+      img.style.display = 'block';
+      q('#m-spin').style.display = 'none';
+    };
+    tmp.onerror = () => {
+      img.style.display = 'block';
+      q('#m-spin').style.display = 'none';
+    };
+    tmp.src = fullUrl;
+  } else {
+    img.style.display = 'block';
+    q('#m-spin').style.display = 'none';
+  }
+}
+
+function imgError() {
+  q('#m-img').style.display = 'none';
+  q('#m-spin').style.display = 'none';
+}
+
+// ── Claude Vision panel ────────────────────────────────────────────────────
+function resetClaudePanel(row) {
+  const result = q('#m-claude-result');
+  const analyzing = q('#m-analyzing');
+  const btnAnalyze  = q('#m-btn-analyze');
+  const btnReanalyze= q('#m-btn-reanalyze');
+
+  analyzing.style.display = 'none';
+  result.style.display = 'none';
+
+  if (row.analysis) {
+    btnAnalyze.style.display   = 'none';
+    btnReanalyze.style.display = 'inline-flex';
+    renderClaudeResult(row.analysis);
+    result.style.display = 'block';
+  } else {
+    btnAnalyze.style.display   = 'inline-flex';
+    btnReanalyze.style.display = 'none';
+  }
+  btnAnalyze.disabled   = false;
+  btnReanalyze.disabled = false;
+}
+
+async function analyzeModal(force = false) {
+  if (!modalRow) return;
+  const btnA = q('#m-btn-analyze');
+  const btnR = q('#m-btn-reanalyze');
+  const analyzing = q('#m-analyzing');
+  const result    = q('#m-claude-result');
+
+  btnA.disabled = btnR.disabled = true;
+  analyzing.style.display = 'flex';
+  result.style.display = 'none';
+
+  try {
+    const res = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ blob_name: modalRow.blob_name, force }),
+    }).then(r => r.json());
+
+    // Actualizar en allRows
+    const idx = allRows.findIndex(r => r.filename === modalRow.filename);
+    if (idx >= 0) {
+      allRows[idx].analysis = res;
+      modalRow = allRows[idx];
+    }
+
+    renderClaudeResult(res);
+    result.style.display = 'block';
+    btnA.style.display   = 'none';
+    btnR.style.display   = 'inline-flex';
+    btnR.disabled        = false;
+
+    // Actualizar estadísticas
+    buildStats(allRows);
+    toast('Análisis Claude completado', 'ok');
+  } catch (e) {
+    toast('Error al analizar con Claude Vision', 'err');
+    btnA.disabled = btnR.disabled = false;
+  }
+  analyzing.style.display = 'none';
+}
+
+function renderClaudeResult(data) {
+  const result = q('#m-claude-result');
+  const colors = { sano:'#4ade80', botrytis:'#f87171', sospechoso:'#fbbf24' };
+  const status = data.status || 'sospechoso';
+
+  let html = `<div class="claude-result">
+    <div class="claude-result-head">
+      <span class="claude-status-badge cstatus-${status}">${status}</span>
+      <span class="claude-conf">${data.confidence ? 'Confianza: ' + data.confidence : ''}</span>
+      ${data.cached ? '<span style="font-size:10px;color:var(--text-3);margin-left:auto">Desde caché</span>' : ''}
+    </div>`;
+
+  if (data.resumen) {
+    html += `<div class="claude-resumen">${escHtml(data.resumen)}</div>`;
+  }
+
+  const hallazgos = Array.isArray(data.hallazgos) ? data.hallazgos : [];
+  if (hallazgos.length) {
+    html += `<div class="claude-hallazgos">
+      ${hallazgos.map(h => `<div class="claude-hallazgo">${escHtml(h)}</div>`).join('')}
+    </div>`;
+  }
+
+  const anomalias = Array.isArray(data.anomalias) ? data.anomalias.filter(Boolean) : [];
+  if (anomalias.length) {
+    html += `<div class="claude-anomalias">
+      ${anomalias.map(a => `<div class="claude-anomalia">${escHtml(a)}</div>`).join('')}
+    </div>`;
+  }
+
+  if (data.descripcion) {
+    html += `<button class="toggle-desc" id="toggle-desc-btn" onclick="toggleDesc()">Ver descripción completa ▾</button>
+      <div class="claude-descripcion" id="claude-desc-text">${escHtml(data.descripcion)}</div>`;
+  }
+
+  html += '</div>';
+  result.innerHTML = html;
+}
+
+function toggleDesc() {
+  const btn = q('#toggle-desc-btn');
+  const txt = q('#claude-desc-text');
+  if (!btn || !txt) return;
+  const open = txt.classList.toggle('show');
+  btn.textContent = open ? 'Ocultar descripción ▴' : 'Ver descripción completa ▾';
+}
+
+// ── Toast ──────────────────────────────────────────────────────────────────
+function toast(msg, type = '') {
+  const el = q('#toast');
+  el.textContent = msg;
+  el.className   = 'toast show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = 'toast'; }, 3800);
+}
+
+// ── Keyboard ───────────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && q('#modal-overlay').classList.contains('open')) closeModal();
+});
+</script>
+</body>
+</html>
